@@ -8,7 +8,20 @@ import static com.droidkit.actors.ActorTime.currentTime;
  * <p/>
  * Author: Stepan Ex3NDR Korshakov (me@ex3ndr.com, telegram: +7-931-342-12-48)
  */
-public class RunnableDispatcher extends AbstractDispatcher<Runnable> {
+public class RunnableDispatcher extends AbstractDispatcher<Runnable, SimpleDispatchQueue<Runnable>> {
+
+    public RunnableDispatcher() {
+        this(1);
+    }
+
+    public RunnableDispatcher(int count) {
+        super(count, new SimpleDispatchQueue<Runnable>());
+    }
+
+    public RunnableDispatcher(int count, int priority) {
+        super(count, priority, new SimpleDispatchQueue<Runnable>());
+    }
+
     @Override
     protected void dispatchAction(Runnable object) {
         object.run();

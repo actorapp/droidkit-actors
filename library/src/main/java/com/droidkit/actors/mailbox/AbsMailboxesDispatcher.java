@@ -9,21 +9,14 @@ import com.droidkit.actors.messages.StartActor;
 /**
  * Created by ex3ndr on 14.08.14.
  */
-public abstract class AbsMailboxesDispatcher extends AbstractDispatcher<Envelope> {
+public abstract class AbsMailboxesDispatcher extends AbstractDispatcher<Envelope, MailboxesQueue> {
 
-    protected AbsMailboxesDispatcher() {
+    protected AbsMailboxesDispatcher(int count, MailboxesQueue queue) {
+        super(count, queue);
     }
 
-    protected AbsMailboxesDispatcher(int priority) {
-        super(priority);
-    }
-
-    protected AbsMailboxesDispatcher(AbstractDispatchQueue<Envelope> queue) {
-        super(queue);
-    }
-
-    protected AbsMailboxesDispatcher(int priority, AbstractDispatchQueue<Envelope> queue) {
-        super(priority, queue);
+    protected AbsMailboxesDispatcher(int count, int priority, MailboxesQueue queue) {
+        super(count, priority, queue);
     }
 
     public abstract void connectScope(ActorScope actor);

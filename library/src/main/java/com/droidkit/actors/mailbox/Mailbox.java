@@ -10,10 +10,10 @@ import java.util.TreeMap;
 public class Mailbox {
     private final TreeMap<Long, Envelope> envelopes = new TreeMap<Long, Envelope>();
 
-    private MailboxesQueue dispatcher;
+    private MailboxesQueue queue;
 
-    public Mailbox(MailboxesQueue dispatcher) {
-        this.dispatcher = dispatcher;
+    public Mailbox(MailboxesQueue queue) {
+        this.queue = queue;
     }
 
     public synchronized void schedule(Envelope envelope, long time) {
@@ -21,7 +21,7 @@ public class Mailbox {
             throw new RuntimeException("envelope.mailbox != this mailbox");
         }
 
-        time = dispatcher.sendEnvelope(envelope, time);
+        time = queue.sendEnvelope(envelope, time);
         envelopes.put(time, envelope);
     }
 
@@ -34,7 +34,7 @@ public class Mailbox {
         while (iterator.hasNext()) {
             Map.Entry<Long, Envelope> entry = iterator.next();
             if (isEqualEnvelope(entry.getValue(), envelope)) {
-                dispatcher.removeEnvelope(entry.getKey());
+                queue.removeEnvelope(entry.getKey());
                 iterator.remove();
             }
         }

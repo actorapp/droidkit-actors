@@ -16,28 +16,27 @@ public class MailboxesDispatcher extends AbsMailboxesDispatcher {
 
     private final ActorSystem actorSystem;
 
-    public MailboxesDispatcher(ActorSystem actorSystem) {
-        this(actorSystem, new MailboxesQueue());
-
+    public MailboxesDispatcher(ActorSystem actorSystem, int count) {
+        this(actorSystem, count, new MailboxesQueue());
     }
 
-    public MailboxesDispatcher(ActorSystem actorSystem, int priority) {
-        this(actorSystem, priority, new MailboxesQueue());
+    public MailboxesDispatcher(ActorSystem actorSystem, int count, int priority) {
+        this(actorSystem, priority, count, new MailboxesQueue());
     }
 
-    public MailboxesDispatcher(ActorSystem actorSystem, int priority, MailboxesQueue queue) {
-        super(priority, queue);
+    public MailboxesDispatcher(ActorSystem actorSystem, int count, int priority, MailboxesQueue queue) {
+        super(count, priority, queue);
         this.actorSystem = actorSystem;
     }
 
-    public MailboxesDispatcher(ActorSystem actorSystem, MailboxesQueue queue) {
-        super(queue);
+    public MailboxesDispatcher(ActorSystem actorSystem, int count, MailboxesQueue queue) {
+        super(count, queue);
         this.actorSystem = actorSystem;
     }
 
     @Override
     public void connectScope(ActorScope actor) {
-        Mailbox mailbox = new Mailbox((MailboxesQueue) getQueue());
+        Mailbox mailbox = new Mailbox(getQueue());
         actor.init(mailbox, new ActorRef(actorSystem, mailbox));
         synchronized (mailboxes) {
             mailboxes.put(mailbox, actor);
@@ -53,7 +52,12 @@ public class MailboxesDispatcher extends AbsMailboxesDispatcher {
 
     @Override
     protected void dispatchAction(Envelope envelope) {
-        ActorScope actor = getMailboxActor(envelope.getMailbox());
-        processEnvelope(envelope, actor);
+        try {
+            getQueue().lockMailbox(envelope.getMailbox());
+            ActorScope actor = getMailboxActor(envelope.getMailbox());
+            processEnvelope(envelope, actor);
+        } finally {
+            getQueue().unlockMailbox(envelope.getMailbox());
+        }
     }
 }

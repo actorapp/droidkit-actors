@@ -29,7 +29,7 @@ public class ActorSystem {
     }
 
     public void addDispatcher(String dispatcherId) {
-        addDispatcher(dispatcherId, new MailboxesDispatcher(this));
+        addDispatcher(dispatcherId, new MailboxesDispatcher(this, Runtime.getRuntime().availableProcessors()));
     }
 
     public void addDispatcher(String dispatcherId, AbsMailboxesDispatcher dispatcher) {
@@ -53,7 +53,7 @@ public class ActorSystem {
                 return scope.getActorRef();
             }
 
-            AbsMailboxesDispatcher mailboxesDispatcher = null;
+            AbsMailboxesDispatcher mailboxesDispatcher;
             synchronized (dispatchers) {
                 mailboxesDispatcher = dispatchers.get(
                         props.getDispatcher() == null ? DEFAULT_DISPATCHER : props.getDispatcher());

@@ -2,6 +2,8 @@ package com.droidkit.actors.mailbox;
 
 import com.droidkit.actors.dispatch.AbstractDispatchQueue;
 
+import java.util.HashSet;
+import java.util.Map;
 import java.util.TreeMap;
 
 /**
@@ -10,6 +12,16 @@ import java.util.TreeMap;
 public class MailboxesQueue extends AbstractDispatchQueue<Envelope> {
 
     private final TreeMap<Long, Envelope> envelopes = new TreeMap<Long, Envelope>();
+    private final HashSet<Mailbox> blocked = new HashSet<Mailbox>();
+
+    public synchronized void lockMailbox(Mailbox mailbox) {
+        blocked.add(mailbox);
+    }
+
+    public synchronized void unlockMailbox(Mailbox mailbox) {
+        blocked.remove(mailbox);
+        notifyQueueChanged();
+    }
 
     public synchronized long sendEnvelope(Envelope envelope, long time) {
         while (envelopes.containsKey(time)) {
@@ -25,12 +37,22 @@ public class MailboxesQueue extends AbstractDispatchQueue<Envelope> {
         notifyQueueChanged();
     }
 
+    private synchronized Map.Entry<Long, Envelope> firstEnvelope() {
+        for (Map.Entry<Long, Envelope> entry : envelopes.entrySet()) {
+            if (blocked.contains(entry.getValue().getMailbox())) {
+                return entry;
+            }
+        }
+        return null;
+    }
+
     @Override
     public synchronized Envelope dispatch(long time) {
-        if (envelopes.size() > 0) {
-            long firstKey = envelopes.firstKey();
-            if (firstKey < time) {
-                return envelopes.remove(firstKey);
+        Map.Entry<Long, Envelope> envelope = firstEnvelope();
+        if (envelope != null) {
+            if (envelope.getKey() < time) {
+                envelopes.remove(envelope.getKey());
+                return envelope.getValue();
             }
         }
         return null;
@@ -38,12 +60,12 @@ public class MailboxesQueue extends AbstractDispatchQueue<Envelope> {
 
     @Override
     public synchronized long waitDelay(long time) {
-        if (envelopes.size() > 0) {
-            long firstKey = envelopes.firstKey();
-            if (firstKey < time) {
+        Map.Entry<Long, Envelope> envelope = firstEnvelope();
+        if (envelope != null) {
+            if (envelope.getKey() <= time) {
                 return 0;
             } else {
-                return time - firstKey;
+                return time - envelope.getKey();
             }
         }
         return FOREVER;

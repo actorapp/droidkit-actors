@@ -9,31 +9,30 @@ import static com.droidkit.actors.ActorTime.currentTime;
  * <p/>
  * Author: Stepan Ex3NDR Korshakov (me@ex3ndr.com, telegram: +7-931-342-12-48)
  */
-public abstract class AbstractDispatcher<T> {
+public abstract class AbstractDispatcher<T, Q extends AbstractDispatchQueue<T>> {
 
-    private final Thread thread;
-    final private AbstractDispatchQueue<T> queue;
+    private final Thread[] threads;
+    final private Q queue;
 
     private boolean isClosed = false;
 
-    public AbstractDispatcher() {
-        this(Thread.NORM_PRIORITY);
+    public AbstractDispatcher(int count, Q queue, int priority) {
+        this(count, priority, queue);
     }
 
-    public AbstractDispatcher(int priority) {
-        this(priority, new SimpleDispatchQueue<T>());
+    public AbstractDispatcher(int count, Q queue) {
+        this(count, Thread.NORM_PRIORITY, queue);
     }
 
-    public AbstractDispatcher(AbstractDispatchQueue<T> queue) {
-        this(Thread.NORM_PRIORITY, queue);
-    }
-
-    public AbstractDispatcher(int priority, final AbstractDispatchQueue<T> queue) {
+    public AbstractDispatcher(int count, int priority, final Q queue) {
         this.queue = queue;
 
-        this.thread = new DispatcherThread();
-        this.thread.setPriority(priority);
-        this.thread.start();
+        this.threads = new Thread[count];
+        for (int i = 0; i < count; i++) {
+            this.threads[i] = new DispatcherThread();
+            this.threads[i].setPriority(priority);
+            this.threads[i].start();
+        }
 
         this.queue.setListener(new QueueListener() {
             @Override
@@ -43,7 +42,7 @@ public abstract class AbstractDispatcher<T> {
         });
     }
 
-    public AbstractDispatchQueue<T> getQueue() {
+    public Q getQueue() {
         return queue;
     }
 
@@ -55,8 +54,8 @@ public abstract class AbstractDispatcher<T> {
     protected abstract void dispatchAction(T object);
 
     protected void notifyDispatcher() {
-        synchronized (thread) {
-            thread.notifyAll();
+        synchronized (threads) {
+            threads.notifyAll();
         }
     }
 
@@ -66,7 +65,7 @@ public abstract class AbstractDispatcher<T> {
             while (!isClosed) {
                 T action = queue.dispatch(currentTime());
                 if (action == null) {
-                    synchronized (this) {
+                    synchronized (threads) {
                         try {
                             long delay = queue.waitDelay(currentTime());
                             if (delay > 0) {
