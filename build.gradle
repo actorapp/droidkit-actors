@@ -14,3 +14,5 @@ allprojects {
         mavenCentral()
     }
 }
+
+println "##teamcity[buildNumber '0.1.{build.number}']"
