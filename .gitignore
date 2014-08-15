@@ -3,3 +3,5 @@ sample/build
 .idea
 .gradle
 *.iml
+
+local.properties
