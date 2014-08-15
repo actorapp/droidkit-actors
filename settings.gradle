@@ -1,1 +1,1 @@
-include ':sample', ':library'
+include ':actors', 'actors-sample'

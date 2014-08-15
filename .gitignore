@@ -1,5 +1,5 @@
-library/build
-sample/build
+actors/build
+actors-sample/build
 .idea
 .gradle
 *.iml
