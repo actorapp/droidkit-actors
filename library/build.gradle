@@ -5,6 +5,7 @@ apply plugin: 'signing'
 
 sourceCompatibility = 1.6
 group = 'com.droidkit'
+artifactId = 'actors'
 version = 0.1
 
 dependencies {
