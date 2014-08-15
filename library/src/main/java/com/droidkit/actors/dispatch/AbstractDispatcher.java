@@ -6,7 +6,7 @@ import static com.droidkit.actors.ActorTime.currentTime;
  * MessageDispatcher is used for dispatching messages on it's own thread.
  * Automatically starts new thread for dispatching.
  * Class is completely thread-safe and it could collect actions before real thread start.
- * <p/>
+ *
  * Author: Stepan Ex3NDR Korshakov (me@ex3ndr.com, telegram: +7-931-342-12-48)
  */
 public abstract class AbstractDispatcher<T, Q extends AbstractDispatchQueue<T>> {

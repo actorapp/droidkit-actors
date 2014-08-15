@@ -5,7 +5,7 @@ import static com.droidkit.actors.ActorTime.currentTime;
 /**
  * RunnableDispatcher is MessageDispatcher implementation for executing
  * various Runnable
- * <p/>
+ *
  * Author: Stepan Ex3NDR Korshakov (me@ex3ndr.com, telegram: +7-931-342-12-48)
  */
 public class RunnableDispatcher extends AbstractDispatcher<Runnable, SimpleDispatchQueue<Runnable>> {

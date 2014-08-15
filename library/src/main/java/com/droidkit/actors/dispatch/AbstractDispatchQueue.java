@@ -17,6 +17,7 @@ public abstract class AbstractDispatchQueue<T> {
     /**
      * Fetch message for dispatching and removing it from dispatch queue
      *
+     * @param time current time from ActorTime
      * @return message or null if there is no message for processing
      */
     public abstract T dispatch(long time);
@@ -28,6 +29,7 @@ public abstract class AbstractDispatchQueue<T> {
      * For example, if you will return zero here then thread will
      * loop continuously and consume processor time.
      *
+     * @param time current time from ActorTime
      * @return delay in ms
      */
     public abstract long waitDelay(long time);
@@ -47,8 +49,6 @@ public abstract class AbstractDispatchQueue<T> {
 
     /**
      * Notification about queue change.
-     * During this call methods {@link #putToQueue(T, long)},
-     * {@link #waitDelay(long)}, {@link #dispatch(long)} may be called
      */
     protected void notifyQueueChanged() {
         QueueListener lListener = listener;
