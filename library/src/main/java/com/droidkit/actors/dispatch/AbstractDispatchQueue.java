@@ -2,10 +2,10 @@ package com.droidkit.actors.dispatch;
 
 /**
  * Queue for dispatching objects for MessageDispatcher.
- * Implementation MIGHT BE thread-safe.
+ * Implementation MUST BE thread-safe.
  * Thread-safe requirement is used for implementing custom queues
  * (for example with reordering or deleting)
- * <p/>
+ *
  * Author: Stepan Ex3NDR Korshakov (me@ex3ndr.com, telegram: +7-931-342-12-48)
  */
 public abstract class AbstractDispatchQueue<T> {
