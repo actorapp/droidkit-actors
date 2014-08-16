@@ -43,7 +43,7 @@ android {
             project.hasProperty('androidAlias')) {
         android.signingConfigs.release.storeFile = file(androidStore)
         android.signingConfigs.release.storePassword = androidStorePass
-        android.signingConfigs.release.alias = androidAlias
+        android.signingConfigs.release.keyAlias = androidAlias
         android.signingConfigs.release.keyPassword = androidAliasPass
     } else {
         buildTypes.release.signingConfig = null
