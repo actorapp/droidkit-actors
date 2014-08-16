@@ -1,7 +1,9 @@
 package com.droidkit.actors.dispatch;
 
 /**
- * Created by ex3ndr on 03.04.14.
+ * Listener for monitoring queue changes in dispatchers
+ *
+ * @author Stepan Ex3NDR Korshakov (me@ex3ndr.com)
  */
 public interface QueueListener {
     public void onQueueChanged();

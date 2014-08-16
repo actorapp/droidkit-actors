@@ -1,15 +1,16 @@
 package com.droidkit.actors.dispatch;
 
 /**
- * Queue for dispatching objects for MessageDispatcher.
+ * Queue for dispatching messages for {@link com.droidkit.actors.dispatch.AbstractDispatcher}.
  * Implementation MUST BE thread-safe.
- * Thread-safe requirement is used for implementing custom queues
- * (for example with reordering or deleting)
  *
- * Author: Stepan Ex3NDR Korshakov (me@ex3ndr.com, telegram: +7-931-342-12-48)
+ * @author Stepan Ex3NDR Korshakov (me@ex3ndr.com)
  */
 public abstract class AbstractDispatchQueue<T> {
 
+    /**
+     * Value used for result of waitDelay when dispatcher need to wait forever
+     */
     protected static final long FOREVER = Long.MAX_VALUE;
 
     private QueueListener listener;
@@ -34,6 +35,12 @@ public abstract class AbstractDispatchQueue<T> {
      */
     public abstract long waitDelay(long time);
 
+    /**
+     * Implementation of adding message to queue
+     *
+     * @param message
+     * @param atTime
+     */
     protected abstract void putToQueueImpl(T message, long atTime);
 
     /**
@@ -57,10 +64,20 @@ public abstract class AbstractDispatchQueue<T> {
         }
     }
 
+    /**
+     * Getting of current queue listener
+     *
+     * @return queue listener
+     */
     public QueueListener getListener() {
         return listener;
     }
 
+    /**
+     * Setting queue listener
+     *
+     * @param listener queue listener
+     */
     public void setListener(QueueListener listener) {
         this.listener = listener;
     }

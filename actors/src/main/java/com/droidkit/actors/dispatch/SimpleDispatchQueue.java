@@ -4,7 +4,9 @@ import java.util.ArrayList;
 import java.util.TreeMap;
 
 /**
- * Created by ex3ndr on 03.04.14.
+ * Simple queue implementation for dispatchers
+ *
+ * @author Stepan Ex3NDR Korshakov (me@ex3ndr.com)
  */
 public class SimpleDispatchQueue<T> extends AbstractDispatchQueue<T> {
 
@@ -55,6 +57,11 @@ public class SimpleDispatchQueue<T> extends AbstractDispatchQueue<T> {
         }
     }
 
+    /**
+     * Getting new message object for writing to queue
+     *
+     * @return Message object
+     */
     protected Message obtainMessage() {
         synchronized (freeMessages) {
             if (freeMessages.size() > 0) {
@@ -64,12 +71,20 @@ public class SimpleDispatchQueue<T> extends AbstractDispatchQueue<T> {
         return new Message();
     }
 
+    /**
+     * Saving message object to free cache
+     *
+     * @param message Message object
+     */
     protected void recycle(Message message) {
         synchronized (freeMessages) {
             freeMessages.add(message);
         }
     }
 
+    /**
+     * Holder for messages
+     */
     protected class Message {
         public long destTime;
         public T action;

@@ -3,11 +3,10 @@ package com.droidkit.actors.dispatch;
 import static com.droidkit.actors.ActorTime.currentTime;
 
 /**
- * MessageDispatcher is used for dispatching messages on it's own thread.
- * Automatically starts new thread for dispatching.
- * Class is completely thread-safe and it could collect actions before real thread start.
+ * MessageDispatcher is used for dispatching messages on it's own threads.
+ * Class is completely thread-safe.
  *
- * Author: Stepan Ex3NDR Korshakov (me@ex3ndr.com, telegram: +7-931-342-12-48)
+ * @author Stepan Ex3NDR Korshakov (me@ex3ndr.com)
  */
 public abstract class AbstractDispatcher<T, Q extends AbstractDispatchQueue<T>> {
 
@@ -16,14 +15,25 @@ public abstract class AbstractDispatcher<T, Q extends AbstractDispatchQueue<T>> 
 
     private boolean isClosed = false;
 
-    public AbstractDispatcher(int count, Q queue, int priority) {
-        this(count, priority, queue);
-    }
-
+    /**
+     * Dispatcher constructor. Create threads with NORM_PRIORITY.
+     *
+     * @param count thread count
+     * @param queue queue for messages
+     *              (see {@link com.droidkit.actors.dispatch.AbstractDispatchQueue} for more information)
+     */
     public AbstractDispatcher(int count, Q queue) {
         this(count, Thread.NORM_PRIORITY, queue);
     }
 
+    /**
+     * Dispatcher constructor
+     *
+     * @param count    thread count
+     * @param queue    queue for messages
+     *                 (see {@link com.droidkit.actors.dispatch.AbstractDispatchQueue} for more information)
+     * @param priority thread priority
+     */
     public AbstractDispatcher(int count, int priority, final Q queue) {
         this.queue = queue;
 
@@ -42,23 +52,42 @@ public abstract class AbstractDispatcher<T, Q extends AbstractDispatchQueue<T>> 
         });
     }
 
+    /**
+     * Queue used for dispatching
+     *
+     * @return queue
+     */
     public Q getQueue() {
         return queue;
     }
 
+    /**
+     * Closing of dispatcher no one actions will be executed after calling this method.
+     */
     public void close() {
         isClosed = true;
         notifyDispatcher();
     }
 
-    protected abstract void dispatchAction(T object);
+    /**
+     * Actual execution of action
+     *
+     * @param message action
+     */
+    protected abstract void dispatchMessage(T message);
 
+    /**
+     * Notification about queue change
+     */
     protected void notifyDispatcher() {
         synchronized (threads) {
             threads.notifyAll();
         }
     }
 
+    /**
+     * Thread class for dispatching
+     */
     private class DispatcherThread extends Thread {
         @Override
         public void run() {
@@ -80,11 +109,11 @@ public abstract class AbstractDispatcher<T, Q extends AbstractDispatchQueue<T>> 
                 }
 
                 try {
-                    dispatchAction(action);
+                    dispatchMessage(action);
                 } catch (Throwable t) {
                     // Possibly danger situation, but i hope this will not corrupt JVM
                     // For example: on Android we could always continue execution after OutOfMemoryError
-                    // Anyway, better to catch all errors manually in dispatchAction
+                    // Anyway, better to catch all errors manually in dispatchMessage
                     // t.printStackTrace();
                 }
             }

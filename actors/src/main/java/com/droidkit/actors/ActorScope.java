@@ -5,7 +5,11 @@ import com.droidkit.actors.mailbox.Mailbox;
 import java.util.UUID;
 
 /**
- * Created by ex3ndr on 14.08.14.
+ * INTERNAL API
+ * <p/>
+ * Actor Scope contains states of actor, UUID, Path, Props and Actor (if created).
+ *
+ * @author Stepan Ex3NDR Korshakov (me@ex3ndr.com)
  */
 public class ActorScope {
 
@@ -64,6 +68,11 @@ public class ActorScope {
         return actor;
     }
 
+    /**
+     * Create actor
+     *
+     * @throws Exception
+     */
     public void createActor() throws Exception {
         if (state == STATE_STARTING) {
             actor = props.create();
@@ -76,6 +85,11 @@ public class ActorScope {
         }
     }
 
+    /**
+     * Shutdown actor
+     *
+     * @throws Exception
+     */
     public void shutdownActor() throws Exception {
         if (state == STATE_STARTING || state == STATE_RUNNING ||
                 state == STATE_SHUTDOWN) {

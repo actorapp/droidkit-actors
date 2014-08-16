@@ -1,7 +1,12 @@
 package com.droidkit.actors;
 
 /**
- * Created by ex3ndr on 14.08.14.
+ * Props is a configuration class to specify options for the creation of actors, think of it as an immutable and
+ * thus freely shareable recipe for creating an actor including associated dispatcher information.
+ *
+ * For more information you may read about akka Props: {@see http://doc.akka.io/docs/akka/2.3.5/java/untyped-actors.html}
+ *
+ * @author Stepan Ex3NDR Korshakov (me@ex3ndr.com)
  */
 public final class Props<T extends Actor> {
     private static final int TYPE_DEFAULT = 1;
@@ -21,6 +26,12 @@ public final class Props<T extends Actor> {
         this.creator = creator;
     }
 
+    /**
+     * Creating actor from Props
+     *
+     * @return Actor
+     * @throws Exception
+     */
     public T create() throws Exception {
         if (type == TYPE_DEFAULT) {
             if (args == null || args.length == 0) {
@@ -33,19 +44,45 @@ public final class Props<T extends Actor> {
         throw new RuntimeException("Unsupported create method");
     }
 
+    /**
+     * Getting dispatcher id if available
+     *
+     * @return
+     */
     public String getDispatcher() {
         return dispatcher;
     }
 
+    /**
+     * Changing dispatcher
+     *
+     * @param dispatcher dispatcher id
+     * @return this
+     */
     public Props<T> changeDispatcher(String dispatcher) {
         this.dispatcher = dispatcher;
         return this;
     }
 
+    /**
+     * Create props from class
+     *
+     * @param tClass Actor class
+     * @param <T>    Actor class
+     * @return Props object
+     */
     public static <T extends Actor> Props<T> create(Class<T> tClass) {
         return new Props(tClass, null, TYPE_DEFAULT, null);
     }
 
+    /**
+     * Create props from Actor creator
+     *
+     * @param clazz   Actor class
+     * @param creator Actor creator class
+     * @param <T>     Actor class
+     * @return Props object
+     */
     public static <T extends Actor> Props<T> create(Class<T> clazz, ActorCreator<T> creator) {
         return new Props<T>(clazz, null, TYPE_CREATOR, creator);
     }

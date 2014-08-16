@@ -1,7 +1,9 @@
 package com.droidkit.actors.messages;
 
 /**
- * Created by ex3ndr on 14.08.14.
+ * PoisonPill message for killing actors
+ *
+ * @author Stepan Ex3NDR Korshakov (me@ex3ndr.com)
  */
 public final class PoisonPill {
     public static final PoisonPill INSTANCE = new PoisonPill();

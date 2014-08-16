@@ -7,7 +7,9 @@ import com.droidkit.actors.messages.PoisonPill;
 import com.droidkit.actors.messages.StartActor;
 
 /**
- * Created by ex3ndr on 14.08.14.
+ * Abstract Dispatcher of mailboxes
+ *
+ * @author Stepan Ex3NDR Korshakov (me@ex3ndr.com)
  */
 public abstract class AbsMailboxesDispatcher extends AbstractDispatcher<Envelope, MailboxesQueue> {
 
@@ -19,8 +21,19 @@ public abstract class AbsMailboxesDispatcher extends AbstractDispatcher<Envelope
         super(count, priority, queue);
     }
 
+    /**
+     * Connecting ActorScope with Dispatcher
+     *
+     * @param actor scope
+     */
     public abstract void connectScope(ActorScope actor);
 
+    /**
+     * Processing of envelope
+     *
+     * @param envelope envelope
+     * @param actor    actor
+     */
     protected final void processEnvelope(Envelope envelope, ActorScope actor) {
         if (actor == null) {
             //TODO: add logging

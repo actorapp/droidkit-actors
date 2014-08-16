@@ -3,34 +3,58 @@ package com.droidkit.actors.dispatch;
 import static com.droidkit.actors.ActorTime.currentTime;
 
 /**
- * RunnableDispatcher is MessageDispatcher implementation for executing
- * various Runnable
+ * RunnableDispatcher is used for executing various Runnable in background
  *
- * Author: Stepan Ex3NDR Korshakov (me@ex3ndr.com, telegram: +7-931-342-12-48)
+ * @author Stepan Ex3NDR Korshakov (me@ex3ndr.com)
  */
 public class RunnableDispatcher extends AbstractDispatcher<Runnable, SimpleDispatchQueue<Runnable>> {
 
+    /**
+     * Creating of dispatcher with one thread
+     */
     public RunnableDispatcher() {
         this(1);
     }
 
-    public RunnableDispatcher(int count) {
-        super(count, new SimpleDispatchQueue<Runnable>());
+    /**
+     * Creating of dispatcher with {@code threadsCount} threads
+     *
+     * @param threadsCount number of threads
+     */
+    public RunnableDispatcher(int threadsCount) {
+        super(threadsCount, new SimpleDispatchQueue<Runnable>());
     }
 
-    public RunnableDispatcher(int count, int priority) {
-        super(count, priority, new SimpleDispatchQueue<Runnable>());
+    /**
+     * Creating of dispatcher with {@code threadsCount} threads and {@code priority}
+     *
+     * @param threadsCount number of threads
+     * @param priority     priority of threads
+     */
+    public RunnableDispatcher(int threadsCount, int priority) {
+        super(threadsCount, priority, new SimpleDispatchQueue<Runnable>());
     }
 
     @Override
-    protected void dispatchAction(Runnable object) {
+    protected void dispatchMessage(Runnable object) {
         object.run();
     }
 
+    /**
+     * Post action to queue
+     *
+     * @param action action
+     */
     public void postAction(Runnable action) {
         postAction(action, 0);
     }
 
+    /**
+     * Post action to queue with delay
+     *
+     * @param action action
+     * @param delay  delay
+     */
     public void postAction(Runnable action, long delay) {
         getQueue().putToQueue(action, currentTime() + delay);
     }

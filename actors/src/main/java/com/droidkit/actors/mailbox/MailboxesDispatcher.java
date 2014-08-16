@@ -8,7 +8,9 @@ import com.droidkit.actors.dispatch.AbstractDispatchQueue;
 import java.util.HashMap;
 
 /**
- * Created by ex3ndr on 14.08.14.
+ * Main actor model dispatcher for multiple mailboxes
+ *
+ * @author Stepan Ex3NDR Korshakov (me@ex3ndr.com)
  */
 public class MailboxesDispatcher extends AbsMailboxesDispatcher {
 
@@ -16,21 +18,49 @@ public class MailboxesDispatcher extends AbsMailboxesDispatcher {
 
     private final ActorSystem actorSystem;
 
-    public MailboxesDispatcher(ActorSystem actorSystem, int count) {
-        this(actorSystem, count, new MailboxesQueue());
+    /**
+     * Creating dispatcher for actor system
+     *
+     * @param actorSystem  system
+     * @param threadsCount number of threads
+     */
+    public MailboxesDispatcher(ActorSystem actorSystem, int threadsCount) {
+        this(actorSystem, threadsCount, new MailboxesQueue());
     }
 
-    public MailboxesDispatcher(ActorSystem actorSystem, int count, int priority) {
-        this(actorSystem, priority, count, new MailboxesQueue());
+    /**
+     * Creating dispatcher for actor system
+     *
+     * @param actorSystem  system
+     * @param threadsCount number of threads
+     * @param priority     threads priority
+     */
+    public MailboxesDispatcher(ActorSystem actorSystem, int threadsCount, int priority) {
+        this(actorSystem, priority, threadsCount, new MailboxesQueue());
     }
 
-    public MailboxesDispatcher(ActorSystem actorSystem, int count, int priority, MailboxesQueue queue) {
-        super(count, priority, queue);
+    /**
+     * Creating dispatcher for actor system
+     *
+     * @param actorSystem  system
+     * @param threadsCount number of threads
+     * @param priority     threads priority
+     * @param queue        Mailboxes queue
+     */
+    public MailboxesDispatcher(ActorSystem actorSystem, int threadsCount, int priority, MailboxesQueue queue) {
+        super(threadsCount, priority, queue);
         this.actorSystem = actorSystem;
     }
 
-    public MailboxesDispatcher(ActorSystem actorSystem, int count, MailboxesQueue queue) {
-        super(count, queue);
+    /**
+     * Creating dispatcher for actor system
+     *
+     * @param actorSystem  system
+     * @param threadsCount number of threads
+     * @param queue        Mailboxes queue
+     */
+    public MailboxesDispatcher(ActorSystem actorSystem, int threadsCount, MailboxesQueue queue) {
+        super(threadsCount, queue);
         this.actorSystem = actorSystem;
     }
 
@@ -44,19 +74,25 @@ public class MailboxesDispatcher extends AbsMailboxesDispatcher {
 
     }
 
-    public ActorScope getMailboxActor(Mailbox mailbox) {
+    /**
+     * Getting mailbox for actor
+     *
+     * @param mailbox mailbox
+     * @return ActorScope or null if there are no actors for mailbox
+     */
+    protected ActorScope getMailboxActor(Mailbox mailbox) {
         synchronized (mailboxes) {
             return mailboxes.get(mailbox);
         }
     }
 
     @Override
-    protected void dispatchAction(Envelope envelope) {
+    protected void dispatchMessage(Envelope envelope) {
         try {
-            getQueue().lockMailbox(envelope.getMailbox());
             ActorScope actor = getMailboxActor(envelope.getMailbox());
             processEnvelope(envelope, actor);
         } finally {
+            // TODO: better design
             getQueue().unlockMailbox(envelope.getMailbox());
         }
     }
