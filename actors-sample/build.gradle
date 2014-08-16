@@ -38,7 +38,7 @@ android {
     }
 
     if (project.hasProperty('androidStore') &&
-            project.hasProperty('AndroidStorePass') &&
+            project.hasProperty('androidStorePass') &&
             project.hasProperty('androidAliasPass')&&
             project.hasProperty('androidAlias')) {
         android.signingConfigs.release.storeFile = file(androidStore)
