@@ -60,7 +60,7 @@ system.addDispatcher("images");
 // Add additional dispather with 3 threads with minimal priority
 system.addDispatcher("images", new MailboxesDispatcher(system, 2, Thread.MIN_PRIORITY));
 ```
-### Somplete sample
+### Complete sample
 ```
 system().addDispatcher("images", new MailboxesDispatcher(system(), 2, Thread.MIN_PRIORITY));
 
