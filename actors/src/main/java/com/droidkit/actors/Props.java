@@ -3,8 +3,8 @@ package com.droidkit.actors;
 /**
  * Props is a configuration class to specify options for the creation of actors, think of it as an immutable and
  * thus freely shareable recipe for creating an actor including associated dispatcher information.
- *
- * For more information you may read about akka Props: {@see http://doc.akka.io/docs/akka/2.3.5/java/untyped-actors.html}
+ * <p/>
+ * For more information you may read about <a href="http://doc.akka.io/docs/akka/2.3.5/java/untyped-actors.html">Akka Props</a>.
  *
  * @author Stepan Ex3NDR Korshakov (me@ex3ndr.com)
  */
