@@ -5,8 +5,7 @@ import com.droidkit.actors.mailbox.Mailbox;
 import java.util.UUID;
 
 /**
- * INTERNAL API
- * <p/>
+ * <p>INTERNAL API</p>
  * Actor Scope contains states of actor, UUID, Path, Props and Actor (if created).
  *
  * @author Stepan Ex3NDR Korshakov (me@ex3ndr.com)

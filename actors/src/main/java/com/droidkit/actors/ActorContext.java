@@ -10,8 +10,8 @@ public class ActorContext {
     private final ActorSystem system;
 
     /**
-     * INTERNAL API
-     * <p/>
+     * <p>INTERNAL API</p>
+     *
      * Creating of actor context
      *
      * @param self   actor reference

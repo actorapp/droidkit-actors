@@ -22,8 +22,7 @@ public class Actor {
     }
 
     /**
-     * INTERNAL API
-     * <p/>
+     * <p>INTERNAL API</p>
      * Initialization of actor
      *
      * @param uuid    uuid of actor

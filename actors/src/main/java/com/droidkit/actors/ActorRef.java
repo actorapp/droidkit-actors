@@ -13,8 +13,7 @@ public class ActorRef {
     private Mailbox mailbox;
 
     /**
-     * INTERNAL API
-     * <p/>
+     * <p>INTERNAL API</p>
      * Creating actor reference
      *
      * @param system  actor system
