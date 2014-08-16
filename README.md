@@ -19,17 +19,17 @@ public class LogActor extends Actor {
 
     @Override
     public void preStart() {
-        Log.d("ACTOR", "preStart #" + hashCode());
+        Log.d("LOGACTOR#" + hashCode(), "preStart");
     }
 
     @Override
     public void onReceive(Object message) {
-        Log.d("ACTOR", message + "");
+        Log.d("LOGACTOR#" + hashCode(), message + "");
     }
 
     @Override
     public void postStop() {
-        Log.d("ACTOR", "postStop #" + hashCode());
+        Log.d("LOGACTOR#" + hashCode(), "postStop");
     }
 }
 ```
@@ -60,25 +60,21 @@ system.addDispatcher("images");
 // Add additional dispather with 3 threads with minimal priority
 system.addDispatcher("images", new MailboxesDispatcher(system, 2, Thread.MIN_PRIORITY));
 ```
-### Creating and using actor
+### Somplete sample
 ```
+system().addDispatcher("images", new MailboxesDispatcher(system(), 2, Thread.MIN_PRIORITY));
+
 ActorRef log1 = system().actorOf(LogActor.class, "log");
 ActorRef log2 = system().actorOf(LogActor.class, "log");
-ActorRef log3 = system().actorOf(LogActor.class, "log2");
-// log4 will be executed on dispatcher "images"
+ActorRef log3 = system().actorOf(Props.create(LogActor.class).changeDispatcher("images"), "log2");
 ActorRef log4 = system().actorOf(Props.create(LogActor.class).changeDispatcher("images"), "log3");
 
-assert log1 == log2
-assert log3 != log2
-
-log1.send("test1");
-log2.send("test2");
-log3.send("test3");
-log4.send("test4");
+ActorRef[] refs = new ActorRef[]{log1, log2, log3, log4};
+for (int i = 0; i < 100; i++) {
+    refs[i % refs.length].send("test" + i);
+}
 ```
-
-ActorSytem
-===============
+Log output will be with messages without ordering across all messages, but ordered for every actor.
 
 License
 ===============
