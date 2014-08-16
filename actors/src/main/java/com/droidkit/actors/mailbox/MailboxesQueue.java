@@ -21,8 +21,11 @@ public class MailboxesQueue extends AbstractDispatchQueue<Envelope> {
      *
      * @param mailbox mailbox for locking
      */
-    public synchronized void lockMailbox(Mailbox mailbox) {
-        blocked.add(mailbox);
+    public void lockMailbox(Mailbox mailbox) {
+        synchronized (blocked) {
+            blocked.add(mailbox);
+        }
+        notifyQueueChanged();
     }
 
     /**
@@ -30,8 +33,10 @@ public class MailboxesQueue extends AbstractDispatchQueue<Envelope> {
      *
      * @param mailbox mailbox for unlocking
      */
-    public synchronized void unlockMailbox(Mailbox mailbox) {
-        blocked.remove(mailbox);
+    public void unlockMailbox(Mailbox mailbox) {
+        synchronized (blocked) {
+            blocked.remove(mailbox);
+        }
         notifyQueueChanged();
     }
 
@@ -42,11 +47,13 @@ public class MailboxesQueue extends AbstractDispatchQueue<Envelope> {
      * @param time     time (see {@link com.droidkit.actors.ActorTime#currentTime()}})
      * @return envelope real time
      */
-    public synchronized long sendEnvelope(Envelope envelope, long time) {
-        while (envelopes.containsKey(time)) {
-            time++;
+    public long sendEnvelope(Envelope envelope, long time) {
+        synchronized (envelopes) {
+            while (envelopes.containsKey(time)) {
+                time++;
+            }
+            envelopes.put(time, envelope);
         }
-        envelopes.put(time, envelope);
         notifyQueueChanged();
         return time;
     }
@@ -56,19 +63,22 @@ public class MailboxesQueue extends AbstractDispatchQueue<Envelope> {
      *
      * @param id envelope id
      */
-    public synchronized void removeEnvelope(long id) {
-        envelopes.remove(id);
+    public void removeEnvelope(long id) {
+        synchronized (envelopes) {
+            envelopes.remove(id);
+        }
         notifyQueueChanged();
     }
 
     /**
      * getting first available envelope
+     * MUST BE wrapped with envelopes and blocked sync
      *
      * @return envelope entry
      */
-    private synchronized Map.Entry<Long, Envelope> firstEnvelope() {
+    private Map.Entry<Long, Envelope> firstEnvelope() {
         for (Map.Entry<Long, Envelope> entry : envelopes.entrySet()) {
-            if (blocked.contains(entry.getValue().getMailbox())) {
+            if (!blocked.contains(entry.getValue().getMailbox())) {
                 return entry;
             }
         }
@@ -76,28 +86,37 @@ public class MailboxesQueue extends AbstractDispatchQueue<Envelope> {
     }
 
     @Override
-    public synchronized Envelope dispatch(long time) {
-        Map.Entry<Long, Envelope> envelope = firstEnvelope();
-        if (envelope != null) {
-            if (envelope.getKey() < time) {
-                envelopes.remove(envelope.getKey());
-                //TODO: Better design
-                // Locking of mailbox before dispatch return
-                lockMailbox(envelope.getValue().getMailbox());
-                return envelope.getValue();
+    public Envelope dispatch(long time) {
+        synchronized (envelopes) {
+            synchronized (blocked) {
+                Map.Entry<Long, Envelope> envelope = firstEnvelope();
+                if (envelope != null) {
+                    if (envelope.getKey() < time) {
+                        envelopes.remove(envelope.getKey());
+                        //TODO: Better design
+                        // Locking of mailbox before dispatch return
+                        blocked.add(envelope.getValue().getMailbox());
+                        return envelope.getValue();
+                    }
+                }
             }
         }
         return null;
     }
 
     @Override
-    public synchronized long waitDelay(long time) {
-        Map.Entry<Long, Envelope> envelope = firstEnvelope();
-        if (envelope != null) {
-            if (envelope.getKey() <= time) {
-                return 0;
-            } else {
-                return time - envelope.getKey();
+    public long waitDelay(long time) {
+        synchronized (envelopes) {
+            synchronized (blocked) {
+                Map.Entry<Long, Envelope> envelope = firstEnvelope();
+
+                if (envelope != null) {
+                    if (envelope.getKey() <= time) {
+                        return 0;
+                    } else {
+                        return time - envelope.getKey();
+                    }
+                }
             }
         }
         return FOREVER;

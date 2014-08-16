@@ -98,7 +98,7 @@ public abstract class AbstractDispatcher<T, Q extends AbstractDispatchQueue<T>> 
                         try {
                             long delay = queue.waitDelay(currentTime());
                             if (delay > 0) {
-                                wait(delay);
+                                threads.wait(delay);
                             }
                             continue;
                         } catch (InterruptedException e) {

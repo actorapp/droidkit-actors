@@ -10,16 +10,16 @@ public class LogActor extends Actor {
 
     @Override
     public void preStart() {
-        Log.d("ACTOR", "preStart #" + hashCode());
+        Log.d("LOGACTOR#" + hashCode(), "preStart");
     }
 
     @Override
     public void onReceive(Object message) {
-        Log.d("ACTOR", message + "");
+        Log.d("LOGACTOR#" + hashCode(), message + "");
     }
 
     @Override
     public void postStop() {
-        Log.d("ACTOR", "postStop #" + hashCode());
+        Log.d("LOGACTOR#" + hashCode(), "postStop");
     }
 }
