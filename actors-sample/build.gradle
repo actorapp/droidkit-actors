@@ -19,14 +19,34 @@ android {
     defaultConfig {
         minSdkVersion 8
         targetSdkVersion 19
-        versionCode 1
-        versionName "0.1"
+        versionCode Integer.valueOf(buildNumber)
+        versionName fullVersion
     }
+
+    signingConfigs {
+        release {
+        
+        }
+    }
+
     buildTypes {
         release {
+            signingConfig signingConfigs.release
             runProguard false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
         }
+    }
+
+    if (project.hasProperty('androidStore') &&
+            project.hasProperty('AndroidStorePass') &&
+            project.hasProperty('androidAliasPass')&&
+            project.hasProperty('androidAlias')) {
+        android.signingConfigs.release.storeFile = file(androidStore)
+        android.signingConfigs.release.storePassword = AndroidStorePass
+        android.signingConfigs.release.alias = androidAlias
+        android.signingConfigs.release.keyPassword = androidAliasPass
+    } else {
+        buildTypes.release.signingConfig = null
     }
 }
 

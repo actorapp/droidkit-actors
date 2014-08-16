@@ -1,15 +1,10 @@
 apply plugin: 'java'
-
 apply plugin: 'maven'
 apply plugin: 'signing'
 
 sourceCompatibility = 1.6
 group = 'com.droidkit'
-version = 0.1
-
-dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-}
+version = fullVersion
 
 task javadocJar(type: Jar, dependsOn: javadoc) {
     classifier = 'javadoc'
@@ -32,42 +27,44 @@ signing {
     sign configurations.archives
 }
 
-//uploadArchives {
-//    repositories {
-//        mavenDeployer {
-//            beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
-//
-//            repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
-//                authentication(userName: ossrhUsername, password: ossrhPassword)
-//            }
-//
-//            pom.project {
-//                name 'DroidKit-Actors'
-//                packaging 'jar'
-//                description 'DroidKit Actors is simple actor model implementation for java and Android'
-//                url 'https://github.com/secretapphd/droidkit-actors'
-//
-//                scm {
-//                    url 'scm:git@github.com:secretapphd/droidkit-actors.git'
-//                    connection 'scm:git@github.com:secretapphd/droidkit-actors.git'
-//                    developerConnection 'scm:git@github.com:secretapphd/droidkit-actors.git'
-//                }
-//
-//                licenses {
-//                    license {
-//                        name 'The MIT License (MIT)'
-//                        url 'http://opensource.org/licenses/MIT'
-//                        distribution 'repo'
-//                    }
-//                }
-//
-//                developers {
-//                    developer {
-//                        id 'ex3ndr'
-//                        name 'Stepan Korshakov'
-//                    }
-//                }
-//            }
-//        }
-//    }
-//}
+if (project.hasProperty("ossrhUsername") && project.hasProperty("ossrhPassword")) {
+    uploadArchives {
+        repositories {
+            mavenDeployer {
+                beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+
+                repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
+                    authentication(userName: ossrhUsername, password: ossrhPassword)
+                }
+
+                pom.project {
+                    name 'DroidKit-Actors'
+                    packaging 'jar'
+                    description 'DroidKit Actors is simple actor model implementation for java and Android'
+                    url 'https://github.com/secretapphd/droidkit-actors'
+
+                    scm {
+                        url 'scm:git@github.com:secretapphd/droidkit-actors.git'
+                        connection 'scm:git@github.com:secretapphd/droidkit-actors.git'
+                        developerConnection 'scm:git@github.com:secretapphd/droidkit-actors.git'
+                    }
+
+                    licenses {
+                        license {
+                            name 'The MIT License (MIT)'
+                            url 'http://opensource.org/licenses/MIT'
+                            distribution 'repo'
+                        }
+                    }
+
+                    developers {
+                        developer {
+                            id 'ex3ndr'
+                            name 'Stepan Korshakov'
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

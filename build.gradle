@@ -15,4 +15,8 @@ allprojects {
     }
 }
 
-println "##teamcity[buildNumber '0.1.{build.number}']"
+libraryVersion = '0.1'
+buildNumber = project.hasProperty("exBuildIndex") ? exBuildIndex : '20048';
+fullVersion = libraryVersion + "." + buildNumber;
+
+println "##teamcity[buildNumber '$fullVersion']"
