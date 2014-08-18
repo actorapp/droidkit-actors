@@ -72,4 +72,12 @@ public class Mailbox {
     protected boolean isEqualEnvelope(Envelope a, Envelope b) {
         return a.getMessage().getClass() == b.getMessage().getClass();
     }
+
+    public synchronized Envelope[] allEnvelopes() {
+        return envelopes.values().toArray(new Envelope[0]);
+    }
+
+    public synchronized int getMailboxSize() {
+        return envelopes.size();
+    }
 }

@@ -6,20 +6,17 @@ package com.droidkit.actors;
  * @author Stepan Ex3NDR Korshakov (me@ex3ndr.com)
  */
 public class ActorContext {
-    private final ActorRef self;
-    private final ActorSystem system;
+    private final ActorScope actorScope;
 
     /**
      * <p>INTERNAL API</p>
-     *
+     * <p/>
      * Creating of actor context
      *
-     * @param self   actor reference
-     * @param system actor system
+     * @param scope actor scope
      */
-    public ActorContext(ActorRef self, ActorSystem system) {
-        this.self = self;
-        this.system = system;
+    public ActorContext(ActorScope scope) {
+        this.actorScope = scope;
     }
 
     /**
@@ -28,7 +25,7 @@ public class ActorContext {
      * @return reference
      */
     public ActorRef getSelf() {
-        return self;
+        return actorScope.getActorRef();
     }
 
     /**
@@ -37,6 +34,22 @@ public class ActorContext {
      * @return Actor system
      */
     public ActorSystem getSystem() {
-        return system;
+        return actorScope.getActorSystem();
+    }
+
+
+    public ActorRef sender() {
+        return actorScope.getSender();
+    }
+
+    /**
+     * Stopping actor
+     */
+    public void stopSelf() {
+        try {
+            actorScope.shutdownActor();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

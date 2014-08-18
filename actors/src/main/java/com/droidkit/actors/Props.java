@@ -16,13 +16,14 @@ public final class Props<T extends Actor> {
     private final int type;
     private final ActorCreator<T> creator;
 
-    private String dispatcher;
+    private final String dispatcher;
 
-    private Props(Class<T> aClass, Object[] args, int type, ActorCreator<T> creator) {
+    private Props(Class<T> aClass, Object[] args, int type, String dispatcher, ActorCreator<T> creator) {
         this.aClass = aClass;
         this.args = args;
         this.type = type;
         this.creator = creator;
+        this.dispatcher = dispatcher;
     }
 
     /**
@@ -59,8 +60,7 @@ public final class Props<T extends Actor> {
      * @return this
      */
     public Props<T> changeDispatcher(String dispatcher) {
-        this.dispatcher = dispatcher;
-        return this;
+        return new Props<T>(aClass, args, type, dispatcher, creator);
     }
 
     /**
@@ -71,7 +71,7 @@ public final class Props<T extends Actor> {
      * @return Props object
      */
     public static <T extends Actor> Props<T> create(Class<T> tClass) {
-        return new Props(tClass, null, TYPE_DEFAULT, null);
+        return new Props(tClass, null, TYPE_DEFAULT, null, null);
     }
 
     /**
@@ -83,6 +83,6 @@ public final class Props<T extends Actor> {
      * @return Props object
      */
     public static <T extends Actor> Props<T> create(Class<T> clazz, ActorCreator<T> creator) {
-        return new Props<T>(clazz, null, TYPE_CREATOR, creator);
+        return new Props<T>(clazz, null, TYPE_CREATOR, null, creator);
     }
 }

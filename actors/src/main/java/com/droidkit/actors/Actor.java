@@ -108,6 +108,17 @@ public class Actor {
     }
 
     /**
+     * Reply message to sender of last message
+     *
+     * @param message reply message
+     */
+    public void reply(Object message) {
+        if (context.sender() != null) {
+            context.sender().send(message, self());
+        }
+    }
+
+    /**
      * Called after actor shutdown
      */
     public void postStop() {

@@ -1,6 +1,6 @@
 package com.droidkit.actors.mailbox;
 
-import com.droidkit.actors.ActorScope;
+import com.droidkit.actors.*;
 import com.droidkit.actors.dispatch.AbstractDispatchQueue;
 import com.droidkit.actors.dispatch.AbstractDispatcher;
 import com.droidkit.actors.messages.PoisonPill;
@@ -21,12 +21,13 @@ public abstract class AbsMailboxesDispatcher extends AbstractDispatcher<Envelope
         super(count, priority, queue);
     }
 
-    /**
-     * Connecting ActorScope with Dispatcher
-     *
-     * @param actor scope
-     */
-    public abstract void connectScope(ActorScope actor);
+    public abstract ActorScope createScope(String path, Props props);
+
+    public abstract void disconnectScope(ActorScope scope);
+
+    public abstract void sendMessage(String path, Object message, long time, ActorRef sender);
+
+    public abstract void sendMessageOnce(String path, Object message, long time, ActorRef sender);
 
     /**
      * Processing of envelope
@@ -43,19 +44,20 @@ public abstract class AbsMailboxesDispatcher extends AbstractDispatcher<Envelope
         if (envelope.getMessage() == StartActor.INSTANCE) {
             try {
                 actor.createActor();
-                actor.getActor().preStart();
             } catch (Exception e) {
                 e.printStackTrace();
             }
         } else if (envelope.getMessage() == PoisonPill.INSTANCE) {
             try {
-                actor.getActor().postStop();
                 actor.shutdownActor();
             } catch (Exception e) {
                 e.printStackTrace();
             }
         } else {
+            CurrentActor.setCurrentActor(actor.getActor());
+            actor.setSender(envelope.getSender());
             actor.getActor().onReceive(envelope.getMessage());
         }
+        CurrentActor.setCurrentActor(null);
     }
 }

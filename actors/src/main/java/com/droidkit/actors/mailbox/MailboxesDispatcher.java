@@ -3,9 +3,13 @@ package com.droidkit.actors.mailbox;
 import com.droidkit.actors.ActorRef;
 import com.droidkit.actors.ActorScope;
 import com.droidkit.actors.ActorSystem;
+import com.droidkit.actors.Props;
 import com.droidkit.actors.dispatch.AbstractDispatchQueue;
+import com.droidkit.actors.messages.DeadLetter;
+import com.droidkit.actors.messages.StartActor;
 
 import java.util.HashMap;
+import java.util.UUID;
 
 /**
  * Main actor model dispatcher for multiple mailboxes
@@ -15,6 +19,8 @@ import java.util.HashMap;
 public class MailboxesDispatcher extends AbsMailboxesDispatcher {
 
     private final HashMap<Mailbox, ActorScope> mailboxes = new HashMap<Mailbox, ActorScope>();
+    private final HashMap<String, ActorScope> scopes = new HashMap<String, ActorScope>();
+    private final HashMap<String, Props> actorProps = new HashMap<String, Props>();
 
     private final ActorSystem actorSystem;
 
@@ -65,13 +71,64 @@ public class MailboxesDispatcher extends AbsMailboxesDispatcher {
     }
 
     @Override
-    public void connectScope(ActorScope actor) {
+    public ActorScope createScope(String path, Props props) {
+        // TODO: add path check
+
         Mailbox mailbox = new Mailbox(getQueue());
-        actor.init(mailbox, new ActorRef(actorSystem, mailbox));
+        UUID uuid = UUID.randomUUID();
+        ActorRef ref = new ActorRef(actorSystem, this, uuid, path);
+        ActorScope scope = new ActorScope(actorSystem, mailbox, ref, this, UUID.randomUUID(), path, props);
+
         synchronized (mailboxes) {
-            mailboxes.put(mailbox, actor);
+            mailboxes.put(mailbox, scope);
+            scopes.put(scope.getPath(), scope);
+            actorProps.put(path, props);
         }
 
+        // Sending init message
+        scope.getActorRef().send(StartActor.INSTANCE);
+        return scope;
+    }
+
+    @Override
+    public void disconnectScope(ActorScope scope) {
+        synchronized (mailboxes) {
+            mailboxes.remove(scope.getMailbox());
+            scopes.remove(scope.getPath());
+        }
+        for (Envelope envelope : scope.getMailbox().allEnvelopes()) {
+            if (envelope.getSender() != null) {
+                envelope.getSender().send(new DeadLetter(envelope.getMessage()));
+            }
+        }
+    }
+
+    @Override
+    public void sendMessage(String path, Object message, long time, ActorRef sender) {
+        synchronized (mailboxes) {
+            if (!scopes.containsKey(path)) {
+                if (sender != null) {
+                    sender.send(new DeadLetter(message));
+                }
+            } else {
+                Mailbox mailbox = scopes.get(path).getMailbox();
+                mailbox.schedule(new Envelope(message, mailbox, sender), time);
+            }
+        }
+    }
+
+    @Override
+    public void sendMessageOnce(String path, Object message, long time, ActorRef sender) {
+        synchronized (mailboxes) {
+            if (!scopes.containsKey(path)) {
+                if (sender != null) {
+                    sender.send(new DeadLetter(message));
+                }
+            } else {
+                Mailbox mailbox = scopes.get(path).getMailbox();
+                mailbox.scheduleOnce(new Envelope(message, mailbox, sender), time);
+            }
+        }
     }
 
     /**

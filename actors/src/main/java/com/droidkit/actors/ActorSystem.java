@@ -3,6 +3,7 @@ package com.droidkit.actors;
 import com.droidkit.actors.mailbox.AbsMailboxesDispatcher;
 import com.droidkit.actors.mailbox.Envelope;
 import com.droidkit.actors.mailbox.MailboxesDispatcher;
+import com.droidkit.actors.messages.DeadLetter;
 import com.droidkit.actors.messages.StartActor;
 
 import java.util.HashMap;
@@ -93,9 +94,10 @@ public class ActorSystem {
             }
 
             // Finding dispatcher for actor
+            String dispatcherId = props.getDispatcher() == null ? DEFAULT_DISPATCHER : props.getDispatcher();
+
             AbsMailboxesDispatcher mailboxesDispatcher;
             synchronized (dispatchers) {
-                String dispatcherId = props.getDispatcher() == null ? DEFAULT_DISPATCHER : props.getDispatcher();
                 if (!dispatchers.containsKey(dispatcherId)) {
                     throw new RuntimeException("Unknown dispatcherId '" + dispatcherId + "'");
                 }
@@ -103,17 +105,25 @@ public class ActorSystem {
             }
 
             // Creating actor scope
-            scope = new ActorScope(UUID.randomUUID(), path, props);
-
-            // Connecting scope with dispatcher
-            mailboxesDispatcher.connectScope(scope);
-            // Sending initial message for creating actor
-            mailboxesDispatcher.getQueue().putToQueue(new Envelope(StartActor.INSTANCE, scope.getMailbox(), null), ActorTime.currentTime());
+            scope = mailboxesDispatcher.createScope(path, props);
 
             // Saving actor in collection
             actors.put(path, scope);
 
             return scope.getActorRef();
+        }
+    }
+
+    /**
+     * WARRING! Call only during processing message in actor!
+     *
+     * @param scope Actor Scope
+     */
+    void removeActor(ActorScope scope) {
+        synchronized (actors) {
+            if (actors.get(scope.getPath()) == scope) {
+                actors.remove(scope.getPath());
+            }
         }
     }
 }

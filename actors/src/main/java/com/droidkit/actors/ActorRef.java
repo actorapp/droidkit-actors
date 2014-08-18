@@ -1,7 +1,10 @@
 package com.droidkit.actors;
 
+import com.droidkit.actors.mailbox.AbsMailboxesDispatcher;
 import com.droidkit.actors.mailbox.Envelope;
 import com.droidkit.actors.mailbox.Mailbox;
+
+import java.util.UUID;
 
 /**
  * Reference to Actor that allows to send messages to real Actor
@@ -10,18 +13,32 @@ import com.droidkit.actors.mailbox.Mailbox;
  */
 public class ActorRef {
     private ActorSystem system;
-    private Mailbox mailbox;
+    private AbsMailboxesDispatcher dispatcher;
+    private UUID uuid;
+    private String path;
+
+    public UUID getUuid() {
+        return uuid;
+    }
+
+    public String getPath() {
+        return path;
+    }
 
     /**
      * <p>INTERNAL API</p>
      * Creating actor reference
      *
-     * @param system  actor system
-     * @param mailbox mailbox
+     * @param system     actor system
+     * @param dispatcher dispatcher of actor
+     * @param path       path of actor
+     * @param uuid       uuid of actor
      */
-    public ActorRef(ActorSystem system, Mailbox mailbox) {
+    public ActorRef(ActorSystem system, AbsMailboxesDispatcher dispatcher, UUID uuid, String path) {
         this.system = system;
-        this.mailbox = mailbox;
+        this.dispatcher = dispatcher;
+        this.uuid = uuid;
+        this.path = path;
     }
 
     /**
@@ -61,7 +78,7 @@ public class ActorRef {
      * @param sender  sender
      */
     public void send(Object message, long delay, ActorRef sender) {
-        mailbox.schedule(new Envelope(message, mailbox, sender), ActorTime.currentTime() + delay);
+        dispatcher.sendMessage(path, message, ActorTime.currentTime() + delay, sender);
     }
 
     /**
@@ -101,6 +118,6 @@ public class ActorRef {
      * @param sender  sender
      */
     public void sendOnce(Object message, long delay, ActorRef sender) {
-        mailbox.scheduleOnce(new Envelope(message, mailbox, sender), ActorTime.currentTime() + delay);
+        dispatcher.sendMessageOnce(path, message, ActorTime.currentTime() + delay, sender);
     }
 }
