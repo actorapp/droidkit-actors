@@ -23,9 +23,10 @@ public class HttpDownloader extends TaskActor<byte[]> {
 
     private static final RunnableDispatcher dispatcher = new RunnableDispatcher(2);
 
-    public static void requestDownload(int requestId, String url, ActorRef actorRef) {
-        ActorSystem.system().actorOf(prop(url), "/http_" + HashUtil.md5(url))
-                .send(new TaskRequest(requestId, actorRef));
+    public static ActorRef requestDownload(int requestId, String url, ActorRef actorRef) {
+        ActorRef ref = ActorSystem.system().actorOf(prop(url), "/http_" + HashUtil.md5(url));
+        ref.send(new TaskRequest(requestId, actorRef));
+        return ref;
     }
 
     public static Props<HttpDownloader> prop(final String url) {
