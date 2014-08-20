@@ -10,7 +10,6 @@ public class ActorContext {
 
     /**
      * <p>INTERNAL API</p>
-     * <p/>
      * Creating of actor context
      *
      * @param scope actor scope
