@@ -1,6 +1,7 @@
 package com.droidkit.actors.dispatch;
 
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.TreeMap;
 
 /**
@@ -13,6 +14,19 @@ public class SimpleDispatchQueue<T> extends AbstractDispatchQueue<T> {
     protected final TreeMap<Long, Message> messages = new TreeMap<Long, Message>();
 
     protected final ArrayList<Message> freeMessages = new ArrayList<Message>();
+
+    public void removeFromQueue(T t) {
+        synchronized (messages) {
+            for (Map.Entry<Long, Message> messageEntry : messages.entrySet()) {
+                if (messageEntry.getValue().equals(t)) {
+                    Message message = messages.remove(messageEntry.getKey());
+                    recycle(message);
+                    notifyQueueChanged();
+                    return;
+                }
+            }
+        }
+    }
 
     @Override
     public T dispatch(long time) {

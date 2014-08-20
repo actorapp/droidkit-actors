@@ -1,4 +1,4 @@
-package com.droidkit.actors.tasks;
+package com.droidkit.actors.tasks.messages;
 
 /**
  * Created by ex3ndr on 20.08.14.

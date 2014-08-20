@@ -1,7 +1,12 @@
 package com.droidkit.actors.tasks;
 
 import com.droidkit.actors.Actor;
+import com.droidkit.actors.ActorRef;
 import com.droidkit.actors.messages.PoisonPill;
+import com.droidkit.actors.tasks.messages.TaskCancel;
+import com.droidkit.actors.tasks.messages.TaskError;
+import com.droidkit.actors.tasks.messages.TaskRequest;
+import com.droidkit.actors.tasks.messages.TaskResult;
 
 import java.util.HashSet;
 
@@ -9,10 +14,11 @@ import java.util.HashSet;
  * Created by ex3ndr on 17.08.14.
  */
 public abstract class TaskActor<T> extends Actor {
-    private final HashSet<TaskRequest> requests = new HashSet<TaskRequest>();
+    private final HashSet<TaskListener> requests = new HashSet<TaskListener>();
 
     private T result;
     private boolean isCompleted;
+    private boolean isCompletedSuccess;
     private long dieTimeout = 300;
 
     public void setTimeOut(long timeOut) {
@@ -29,25 +35,41 @@ public abstract class TaskActor<T> extends Actor {
         if (message instanceof TaskRequest) {
             TaskRequest request = (TaskRequest) message;
             if (isCompleted) {
-                reply(result);
+                if (isCompletedSuccess) {
+                    reply(result);
+                }
             } else {
-                requests.add(request);
+                TaskListener listener = new TaskListener(request.getRequestId(), sender());
+                requests.add(listener);
+            }
+        } else if (message instanceof TaskCancel) {
+            if (isCompleted) {
+                return;
+            }
+            TaskCancel cancel = (TaskCancel) message;
+            TaskListener listener = new TaskListener(cancel.getRequestId(), sender());
+            requests.remove(listener);
+            if (requests.size() == 0) {
+                onTaskObsolete();
+                context().stopSelf();
             }
         } else if (message instanceof Result) {
             if (!isCompleted) {
                 Result res = (Result) message;
                 isCompleted = true;
+                isCompletedSuccess = true;
                 result = (T) res.getRes();
-                for (TaskRequest request : requests) {
-                    request.getRef().send(new TaskResult<T>(request.getRequestId(), result));
+                for (TaskListener request : requests) {
+                    request.getSender().send(new TaskResult<T>(request.getRequestId(), result));
                 }
                 self().send(PoisonPill.INSTANCE, dieTimeout);
             }
         } else if (message instanceof Error) {
             if (!isCompleted) {
+                isCompleted = true;
                 Error error = (Error) message;
-                for (TaskRequest request : requests) {
-                    request.getRef().send(new TaskError(request.getRequestId(), error.getError()));
+                for (TaskListener request : requests) {
+                    request.getSender().send(new TaskError(request.getRequestId(), error.getError()));
                 }
                 context().stopSelf();
             }
@@ -56,8 +78,16 @@ public abstract class TaskActor<T> extends Actor {
 
     public abstract void startTask();
 
+    public void onTaskObsolete() {
+
+    }
+
     public void complete(T res) {
         self().send(new Result(res));
+    }
+
+    public void error(Throwable t) {
+        self().send(new Error(t));
     }
 
     private static class Error {
@@ -81,6 +111,44 @@ public abstract class TaskActor<T> extends Actor {
 
         public Object getRes() {
             return res;
+        }
+    }
+
+    private static class TaskListener {
+        private int requestId;
+        private ActorRef sender;
+
+        private TaskListener(int requestId, ActorRef sender) {
+            this.requestId = requestId;
+            this.sender = sender;
+        }
+
+        public int getRequestId() {
+            return requestId;
+        }
+
+        public ActorRef getSender() {
+            return sender;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            TaskListener that = (TaskListener) o;
+
+            if (requestId != that.requestId) return false;
+            if (!sender.equals(that.sender)) return false;
+
+            return true;
+        }
+
+        @Override
+        public int hashCode() {
+            int result = requestId;
+            result = 31 * result + sender.hashCode();
+            return result;
         }
     }
 }

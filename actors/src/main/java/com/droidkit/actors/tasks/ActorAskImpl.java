@@ -2,6 +2,7 @@ package com.droidkit.actors.tasks;
 
 import com.droidkit.actors.ActorRef;
 import com.droidkit.actors.messages.DeadLetter;
+import com.droidkit.actors.tasks.messages.*;
 
 import java.util.HashMap;
 
@@ -52,7 +53,7 @@ public class ActorAskImpl {
                         container.isCompleted = true;
                         for (int i = 0; i < container.futures.length; i++) {
                             container.futures[i].removeListener(container.callbacks[i]);
-                            // TODO: Cancel other tasks
+                            container.futures[i].cancel();
                         }
                         resultFuture.onError(throwable);
                     }
@@ -72,7 +73,7 @@ public class ActorAskImpl {
         }
         AskContainer container = new AskContainer(future, ref, reqId);
         asks.put(reqId, container);
-        ref.send(new TaskRequest(reqId, self));
+        ref.send(new TaskRequest(reqId), self);
         if (timeout > 0) {
             self.send(new TaskTimeout(reqId), timeout);
         }
@@ -112,7 +113,7 @@ public class ActorAskImpl {
     public boolean onTaskCancelled(int reqId) {
         AskContainer container = asks.remove(reqId);
         if (container != null) {
-            container.future.onError(new AskCancelledException());
+            container.ref.send(new TaskCancel(reqId), self);
             return true;
         }
 

@@ -63,6 +63,21 @@ public class AskFuture<T> {
         return result;
     }
 
+    public void cancel() {
+        if (isCompleted) {
+            return;
+        }
+        isCompleted = true;
+        isError = false;
+        isCanceled = true;
+
+        for (AskCallback callback : callbacks) {
+            callback.onError(new AskCancelledException());
+        }
+
+        askImpl.onTaskCancelled(reqId);
+    }
+
     void onError(Throwable throwable) {
         if (isCompleted) {
             return;

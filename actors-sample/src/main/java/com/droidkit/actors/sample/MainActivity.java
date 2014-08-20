@@ -24,7 +24,9 @@ public class MainActivity extends ActionBarActivity {
 //        downloader.send("http://flirtyfleurs.com/wp-content/uploads/2012/10/pwg-sample-11_photo.jpg", 3000);
 
         ActorRef dow2 = system().actorOf(DownloadFile.class, "dow2");
-        dow2.send(new String[]{"http://flirtyfleurs.com/wp-content/uploads/2012/10/pwg-sample-11_photo.jpg",
-                "http://isc.stuorg.iastate.edu/wp-content/uploads/sample.jpg"});
+        dow2.send(new String[]{
+                "http://flirtyfleurs.com/wp-content/uploads/2012/10/pwg-sample-11_photo.jpg",
+                "http://isc.stuorg.iastate.edu/wp-content/uploads/sample.jpg",
+                "http://imgsv.imaging.nikon.com/lineup/lens/zoom/normalzoom/af-s_dx_18-300mmf_35-56g_ed_vr/img/sample/sample4_l.jpg"});
     }
 }

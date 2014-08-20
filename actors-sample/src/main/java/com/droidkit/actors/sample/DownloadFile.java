@@ -2,6 +2,7 @@ package com.droidkit.actors.sample;
 
 import com.droidkit.actors.ReflectedActor;
 import com.droidkit.actors.tasks.AskCallback;
+import com.droidkit.actors.tasks.AskFuture;
 
 /**
  * Created by ex3ndr on 18.08.14.
@@ -9,9 +10,21 @@ import com.droidkit.actors.tasks.AskCallback;
 public class DownloadFile extends ReflectedActor {
 
     public void onReceive(String[] url) {
-        combine("downloaded", byte[].class,
-                ask(HttpDownloader.download(url[0]), 200),
-                ask(HttpDownloader.download(url[1]), 200));
+        ask(HttpDownloader.download(url[0]));
+        ask(HttpDownloader.download(url[1]));
+        AskFuture future = ask(HttpDownloader.download(url[2]));
+
+        try {
+            Thread.sleep(10);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        future.cancel();
+
+//        combine("downloaded", byte[].class,
+//                ask(HttpDownloader.download(url[0])),
+//                ask(HttpDownloader.download(url[1])));
     }
 
     public void onDownloadedReceive(byte[][] data) {

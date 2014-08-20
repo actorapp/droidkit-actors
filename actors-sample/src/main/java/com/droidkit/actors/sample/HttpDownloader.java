@@ -4,14 +4,10 @@ import com.droidkit.actors.*;
 import com.droidkit.actors.dispatch.RunnableDispatcher;
 import com.droidkit.actors.tasks.TaskActor;
 
-import java.io.BufferedInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
-
-import com.droidkit.actors.tasks.TaskRequest;
 
 /**
  * Created by ex3ndr on 18.08.14.
@@ -38,19 +34,15 @@ public class HttpDownloader extends TaskActor<byte[]> {
     }
 
     private String url;
+    private Runnable runnable;
 
-    public HttpDownloader(String url) {
+    public HttpDownloader(final String url) {
         this.url = url;
-        setTimeOut(500);
-    }
-
-    @Override
-    public void startTask() {
-        Log.d("HttpDownloader:startTask:" + url);
-        dispatcher.postAction(new Runnable() {
+        runnable = new Runnable() {
             @Override
             public void run() {
                 try {
+                    Log.d("HttpDownloader:startDownload:" + url);
                     URL urlSpec = new URL(url);
                     HttpURLConnection urlConnection = (HttpURLConnection) urlSpec.openConnection();
                     urlConnection.setConnectTimeout(15000);
@@ -58,10 +50,24 @@ public class HttpDownloader extends TaskActor<byte[]> {
                     InputStream in = urlConnection.getInputStream();
                     byte[] data = IOUtils.readAll(in);
                     complete(data);
+                    Log.d("HttpDownloader:complete:" + url);
                 } catch (IOException e) {
-                    complete(new byte[0]);
+                    error(e);
+                    Log.d("HttpDownloader:error:" + url);
                 }
             }
-        });
+        };
+        setTimeOut(500);
+    }
+
+    @Override
+    public void startTask() {
+        Log.d("HttpDownloader:startTask:" + url);
+        dispatcher.postAction(runnable);
+    }
+
+    @Override
+    public void onTaskObsolete() {
+        Log.d("HttpDownloader:onTaskObsolete:" + url);
     }
 }

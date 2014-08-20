@@ -4,9 +4,11 @@ import com.droidkit.actors.mailbox.Mailbox;
 import com.droidkit.actors.messages.DeadLetter;
 import com.droidkit.actors.messages.NamedMessage;
 import com.droidkit.actors.tasks.*;
+import com.droidkit.actors.tasks.messages.TaskError;
+import com.droidkit.actors.tasks.messages.TaskResult;
+import com.droidkit.actors.tasks.messages.TaskTimeout;
 
 import java.lang.reflect.Array;
-import java.util.Arrays;
 import java.util.UUID;
 
 /**
@@ -70,6 +72,10 @@ public class Actor {
      */
     protected final ActorContext context() {
         return context;
+    }
+
+    public final ActorRef sender() {
+        return context.sender();
     }
 
     /**

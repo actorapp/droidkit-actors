@@ -1,4 +1,4 @@
-package com.droidkit.actors.tasks;
+package com.droidkit.actors.tasks.messages;
 
 import com.droidkit.actors.ActorRef;
 
@@ -7,18 +7,12 @@ import com.droidkit.actors.ActorRef;
  */
 public class TaskRequest {
     private final int requestId;
-    private final ActorRef ref;
 
-    public TaskRequest(int requestId, ActorRef ref) {
+    public TaskRequest(int requestId) {
         this.requestId = requestId;
-        this.ref = ref;
     }
 
     public int getRequestId() {
         return requestId;
-    }
-
-    public ActorRef getRef() {
-        return ref;
     }
 }
