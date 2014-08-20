@@ -1,7 +1,9 @@
 package com.droidkit.actors.tasks.messages;
 
 /**
- * Created by ex3ndr on 20.08.14.
+ * Message about Task timeout
+ *
+ * @author Stepan Ex3NDR Korshakov (me@ex3ndr.com)
  */
 public class TaskTimeout {
     private final int requestId;

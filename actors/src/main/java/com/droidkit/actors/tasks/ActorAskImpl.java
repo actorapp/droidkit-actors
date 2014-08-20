@@ -7,7 +7,9 @@ import com.droidkit.actors.tasks.messages.*;
 import java.util.HashMap;
 
 /**
- * Created by ex3ndr on 20.08.14.
+ * Implementation of Ask pattern
+ *
+ * @author Stepan Ex3NDR Korshakov (me@ex3ndr.com)
  */
 public class ActorAskImpl {
 

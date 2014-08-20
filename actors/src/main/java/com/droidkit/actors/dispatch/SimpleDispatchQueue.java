@@ -15,6 +15,11 @@ public class SimpleDispatchQueue<T> extends AbstractDispatchQueue<T> {
 
     protected final ArrayList<Message> freeMessages = new ArrayList<Message>();
 
+    /**
+     * Removing message from queue
+     *
+     * @param t message
+     */
     public void removeFromQueue(T t) {
         synchronized (messages) {
             for (Map.Entry<Long, Message> messageEntry : messages.entrySet()) {

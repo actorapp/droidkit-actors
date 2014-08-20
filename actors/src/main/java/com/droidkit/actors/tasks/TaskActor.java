@@ -11,7 +11,9 @@ import com.droidkit.actors.tasks.messages.TaskResult;
 import java.util.HashSet;
 
 /**
- * Created by ex3ndr on 17.08.14.
+ * Actor for performing various async tasks
+ *
+ * @author Stepan Ex3NDR Korshakov (me@ex3ndr.com)
  */
 public abstract class TaskActor<T> extends Actor {
     private final HashSet<TaskListener> requests = new HashSet<TaskListener>();
@@ -21,6 +23,11 @@ public abstract class TaskActor<T> extends Actor {
     private boolean isCompletedSuccess;
     private long dieTimeout = 300;
 
+    /**
+     * Timeout for dying after task complete
+     *
+     * @param timeOut timeout in ms
+     */
     public void setTimeOut(long timeOut) {
         dieTimeout = timeOut;
     }
@@ -76,16 +83,32 @@ public abstract class TaskActor<T> extends Actor {
         }
     }
 
+    /**
+     * Starting of task execution
+     */
     public abstract void startTask();
 
+    /**
+     * Called before killing actor after clearing TaskListeners
+     */
     public void onTaskObsolete() {
 
     }
 
+    /**
+     * Call this method in any thread after task complete
+     *
+     * @param res result of task
+     */
     public void complete(T res) {
         self().send(new Result(res));
     }
 
+    /**
+     * Call this method in any thread after task exception
+     *
+     * @param t exception
+     */
     public void error(Throwable t) {
         self().send(new Error(t));
     }

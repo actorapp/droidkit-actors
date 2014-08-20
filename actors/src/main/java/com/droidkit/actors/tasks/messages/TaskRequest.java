@@ -1,9 +1,9 @@
 package com.droidkit.actors.tasks.messages;
 
-import com.droidkit.actors.ActorRef;
-
 /**
- * Created by ex3ndr on 18.08.14.
+ * Message about requesting task
+ *
+ * @author Stepan Ex3NDR Korshakov (me@ex3ndr.com)
  */
 public class TaskRequest {
     private final int requestId;

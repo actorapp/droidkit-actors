@@ -1,7 +1,9 @@
 package com.droidkit.actors;
 
 /**
- * Created by ex3ndr on 20.08.14.
+ * Actor selection: group and path of actor
+ *
+ * @author Stepan Ex3NDR Korshakov (me@ex3ndr.com)
  */
 public class ActorSelection {
     private final Props props;

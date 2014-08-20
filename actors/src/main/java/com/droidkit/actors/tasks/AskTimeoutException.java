@@ -1,7 +1,9 @@
 package com.droidkit.actors.tasks;
 
 /**
- * Created by ex3ndr on 20.08.14.
+ * Exception for Ask timeout
+ *
+ * @author Stepan Ex3NDR Korshakov (me@ex3ndr.com)
  */
 public class AskTimeoutException extends Exception {
 }

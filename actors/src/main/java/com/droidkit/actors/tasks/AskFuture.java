@@ -5,6 +5,8 @@ import java.util.LinkedList;
 /**
  * Modified future for ask pattern of Actors
  * Created to work only in actor threads
+ *
+ * @author Stepan Ex3NDR Korshakov (me@ex3ndr.com)
  */
 public class AskFuture<T> {
 
@@ -25,17 +27,6 @@ public class AskFuture<T> {
     }
 
     public void addListener(AskCallback callback) {
-//        if (isCompleted) {
-//            if (isCanceled) {
-//                callback.onError(new AskCancelled());
-//            } else if (isError) {
-//                callback.onError(error);
-//            } else {
-//                callback.onResult(result);
-//            }
-//        } else {
-//            callbacks.add(callback);
-//        }
         callbacks.add(callback);
     }
 

@@ -59,6 +59,11 @@ public class RunnableDispatcher extends AbstractDispatcher<Runnable, SimpleDispa
         getQueue().putToQueue(action, currentTime() + delay);
     }
 
+    /**
+     * Removing action from queue
+     *
+     * @param action action
+     */
     public void removeAction(Runnable action) {
         getQueue().removeFromQueue(action);
     }

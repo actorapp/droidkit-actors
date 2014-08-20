@@ -1,7 +1,7 @@
 package com.droidkit.actors.messages;
 
 /**
- * Created by ex3ndr on 17.08.14.
+ * DeadLetter sent whet message was not processed by target actor
  */
 public class DeadLetter {
     private Object message;

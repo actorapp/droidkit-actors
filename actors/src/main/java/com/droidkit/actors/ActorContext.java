@@ -37,6 +37,11 @@ public class ActorContext {
     }
 
 
+    /**
+     * Sender of last received message
+     *
+     * @return sender's ActorRef
+     */
     public ActorRef sender() {
         return actorScope.getSender();
     }

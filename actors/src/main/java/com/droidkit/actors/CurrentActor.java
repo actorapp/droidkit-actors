@@ -1,7 +1,10 @@
 package com.droidkit.actors;
 
 /**
- * Created by ex3ndr on 18.08.14.
+ * <p>INTERNAL API!</p>
+ * Keeps current actor for thread. Will be used for better implementations of patterns.
+ *
+ * @author Stepan Ex3NDR Korshakov (me@ex3ndr.com)
  */
 public class CurrentActor {
     private static ThreadLocal<Actor> currentActor = new ThreadLocal<Actor>();

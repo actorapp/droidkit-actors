@@ -8,7 +8,14 @@ import java.util.ArrayList;
 import java.util.HashSet;
 
 /**
- * Created by ex3ndr on 19.08.14.
+ * ReflectedActor is Actor that uses java reflection for processing of messages
+ * For each message developer must create method named "onReceive" with one argument
+ * with type of message
+ * For special message {@link com.droidkit.actors.messages.NamedMessage} you can create method
+ * named like {@code onDownloadReceive}. First letter in {@code Download} will be lowed and ReflectedActor
+ * will use this as {@code download} for name of message.
+ *
+ * @author Stepan Ex3NDR Korshakov (me@ex3ndr.com)
  */
 public class ReflectedActor extends Actor {
 
@@ -40,6 +47,9 @@ public class ReflectedActor extends Actor {
         preStartImpl();
     }
 
+    /**
+     * Replacement for preStart
+     */
     public void preStartImpl() {
 
     }

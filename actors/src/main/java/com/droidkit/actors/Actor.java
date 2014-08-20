@@ -74,6 +74,11 @@ public class Actor {
         return context;
     }
 
+    /**
+     * Sender of last received message
+     *
+     * @return sender's ActorRef
+     */
     public final ActorRef sender() {
         return context.sender();
     }
@@ -202,21 +207,91 @@ public class Actor {
         }, futures);
     }
 
+    /**
+     * Ask TaskActor for result
+     *
+     * @param selection ActorSelection of task
+     * @return Future
+     */
     public AskFuture ask(ActorSelection selection) {
         return askPattern.ask(system().actorOf(selection), 0, null);
     }
 
-    public AskFuture ask(ActorSelection selection, long delay) {
-        return askPattern.ask(system().actorOf(selection), delay, null);
+    /**
+     * Ask TaskActor for result
+     *
+     * @param selection ActorSelection of task
+     * @param timeout   timeout of task
+     * @return Future
+     */
+    public AskFuture ask(ActorSelection selection, long timeout) {
+        return askPattern.ask(system().actorOf(selection), timeout, null);
     }
 
+    /**
+     * Ask TaskActor for result
+     *
+     * @param selection ActorSelection of task
+     * @param callback  callback for ask
+     * @return Future
+     */
     public AskFuture ask(ActorSelection selection, AskCallback callback) {
-        return ask(system().actorOf(selection), callback);
+        return askPattern.ask(system().actorOf(selection), 0, callback);
     }
 
+    /**
+     * Ask TaskActor for result
+     *
+     * @param selection ActorSelection of task
+     * @param timeout   timeout of task
+     * @param callback  callback for ask
+     * @return Future
+     */
+    public AskFuture ask(ActorSelection selection, long timeout, AskCallback callback) {
+        return askPattern.ask(system().actorOf(selection), timeout, callback);
+    }
+
+    /**
+     * Ask TaskActor for result
+     *
+     * @param ref ActorRef of task
+     * @return Future
+     */
+    public AskFuture ask(ActorRef ref) {
+        return askPattern.ask(ref, 0, null);
+    }
+
+    /**
+     * Ask TaskActor for result
+     *
+     * @param ref     ActorRef of task
+     * @param timeout timeout of task
+     * @return Future
+     */
+    public AskFuture ask(ActorRef ref, long timeout) {
+        return askPattern.ask(ref, timeout, null);
+    }
+
+    /**
+     * Ask TaskActor for result
+     *
+     * @param ref      ActorRef of task
+     * @param callback callback for ask
+     * @return Future
+     */
     public AskFuture ask(ActorRef ref, AskCallback callback) {
         return askPattern.ask(ref, 0, callback);
     }
 
-
+    /**
+     * Ask TaskActor for result
+     *
+     * @param ref      ActorRef of task
+     * @param timeout  timeout of task
+     * @param callback callback for ask
+     * @return Future
+     */
+    public AskFuture ask(ActorRef ref, long timeout, AskCallback callback) {
+        return askPattern.ask(ref, timeout, callback);
+    }
 }

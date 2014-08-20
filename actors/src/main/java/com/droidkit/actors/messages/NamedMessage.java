@@ -1,7 +1,7 @@
 package com.droidkit.actors.messages;
 
 /**
- * Created by ex3ndr on 20.08.14.
+ * Simple named message
  */
 public class NamedMessage {
     private String name;

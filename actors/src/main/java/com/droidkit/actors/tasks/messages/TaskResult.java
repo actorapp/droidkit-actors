@@ -1,7 +1,10 @@
 package com.droidkit.actors.tasks.messages;
 
 /**
- * Created by ex3ndr on 18.08.14.
+ * Message with task result
+ *
+ * @param <T> type of task result
+ * @author Stepan Ex3NDR Korshakov (me@ex3ndr.com)
  */
 public class TaskResult<T> {
     private final int requestId;
