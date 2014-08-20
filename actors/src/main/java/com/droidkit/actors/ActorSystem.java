@@ -63,6 +63,10 @@ public class ActorSystem {
         }
     }
 
+    public <T extends Actor> ActorRef actorOf(ActorSelection selection) {
+        return actorOf(selection.getProps(), selection.getPath());
+    }
+
     /**
      * Creating or getting existing actor from actor class
      *

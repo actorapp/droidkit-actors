@@ -56,7 +56,7 @@ public abstract class AbsMailboxesDispatcher extends AbstractDispatcher<Envelope
         } else {
             CurrentActor.setCurrentActor(actor.getActor());
             actor.setSender(envelope.getSender());
-            actor.getActor().onReceive(envelope.getMessage());
+            actor.getActor().onReceiveGlobal(envelope.getMessage());
         }
         CurrentActor.setCurrentActor(null);
     }

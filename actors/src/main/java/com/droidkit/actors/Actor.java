@@ -1,6 +1,11 @@
 package com.droidkit.actors;
 
 import com.droidkit.actors.mailbox.Mailbox;
+import com.droidkit.actors.messages.DeadLetter;
+import com.droidkit.actors.tasks.ActorAskImpl;
+import com.droidkit.actors.tasks.AskCallback;
+import com.droidkit.actors.tasks.TaskRequest;
+import com.droidkit.actors.tasks.TaskResult;
 
 import java.util.UUID;
 
@@ -16,6 +21,8 @@ public class Actor {
 
     private ActorContext context;
     private Mailbox mailbox;
+
+    private ActorAskImpl askPattern;
 
     public Actor() {
 
@@ -35,6 +42,7 @@ public class Actor {
         this.path = path;
         this.context = context;
         this.mailbox = mailbox;
+        this.askPattern = new ActorAskImpl(self());
     }
 
     /**
@@ -98,12 +106,32 @@ public class Actor {
 
     }
 
+    public final void onReceiveGlobal(Object message) {
+        if (message instanceof DeadLetter) {
+            if (askPattern.onDeadLetter((DeadLetter) message)) {
+                return;
+            }
+        } else if (message instanceof TaskResult) {
+            if (askPattern.onTaskResult((TaskResult) message)) {
+                return;
+            }
+        }
+        onReceive(message);
+    }
+
     /**
      * Receiving of message
      *
      * @param message message
      */
     public void onReceive(Object message) {
+
+    }
+
+    /**
+     * Called after actor shutdown
+     */
+    public void postStop() {
 
     }
 
@@ -118,10 +146,12 @@ public class Actor {
         }
     }
 
-    /**
-     * Called after actor shutdown
-     */
-    public void postStop() {
-
+    public void ask(ActorSelection selection, AskCallback callback) {
+        ask(system().actorOf(selection), callback);
     }
+
+    public void ask(ActorRef ref, AskCallback callback) {
+        askPattern.ask(ref, callback);
+    }
+
 }
