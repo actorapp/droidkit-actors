@@ -1,5 +1,7 @@
 package com.droidkit.actors;
 
+import com.droidkit.actors.messages.NamedMessage;
+
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -11,6 +13,7 @@ import java.util.HashSet;
 public class ReflectedActor extends Actor {
 
     private ArrayList<Event> events = new ArrayList<Event>();
+    private ArrayList<NamedEvent> namedEvents = new ArrayList<NamedEvent>();
 
     @Override
     public final void preStart() {
@@ -21,6 +24,17 @@ public class ReflectedActor extends Actor {
                     continue;
                 }
                 events.add(new Event(m.getParameterTypes()[0], m));
+                continue;
+            }
+            if (m.getName().startsWith("on") && m.getName().endsWith("Receive")) {
+                String methodName = m.getName();
+                String name = methodName.substring("on".length(), methodName.length() - "Receive".length());
+                if (name.length() > 0) {
+                    name = name.substring(0, 1).toLowerCase() + name.substring(1);
+                    namedEvents.add(new NamedEvent(name, m.getParameterTypes()[0], m));
+                    continue;
+                }
+
             }
         }
         preStartImpl();
@@ -32,6 +46,23 @@ public class ReflectedActor extends Actor {
 
     @Override
     public void onReceive(Object message) {
+        if (message instanceof NamedMessage) {
+            NamedMessage named = (NamedMessage) message;
+            for (NamedEvent event : namedEvents) {
+                if (event.name.equals(named.getName())) {
+                    if (event.check(named.getMessage())) {
+                        try {
+                            event.method.invoke(this, named.getMessage());
+                        } catch (IllegalAccessException e) {
+                            e.printStackTrace();
+                        } catch (InvocationTargetException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }
+        }
+
         for (Event event : events) {
             if (event.check(message)) {
                 try {
@@ -43,6 +74,37 @@ public class ReflectedActor extends Actor {
                 }
                 return;
             }
+        }
+    }
+
+    class NamedEvent {
+        private String name;
+        private Class arg;
+        private Method method;
+
+        NamedEvent(String name, Class arg, Method method) {
+            this.name = name;
+            this.arg = arg;
+            this.method = method;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public Class getArg() {
+            return arg;
+        }
+
+        public Method getMethod() {
+            return method;
+        }
+
+        public boolean check(Object obj) {
+            if (arg.isAssignableFrom(obj.getClass())) {
+                return true;
+            }
+            return false;
         }
     }
 

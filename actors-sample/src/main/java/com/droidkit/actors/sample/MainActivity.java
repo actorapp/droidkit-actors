@@ -18,7 +18,7 @@ public class MainActivity extends ActionBarActivity {
 
         ActorRef log = system().actorOf(LogActor.class, "log");
 
-//        ActorRef downloader = system().actorOf(DownloadFile.class, "dow");
+        ActorRef downloader = system().actorOf(DownloadFile.class, "dow");
 //        downloader.send("http://flirtyfleurs.com/wp-content/uploads/2012/10/pwg-sample-11_photo.jpg");
 //        downloader.send("http://flirtyfleurs.com/wp-content/uploads/2012/10/pwg-sample-11_photo.jpg", 600);
 //        downloader.send("http://flirtyfleurs.com/wp-content/uploads/2012/10/pwg-sample-11_photo.jpg", 3000);

@@ -2,11 +2,11 @@ package com.droidkit.actors;
 
 import com.droidkit.actors.mailbox.Mailbox;
 import com.droidkit.actors.messages.DeadLetter;
-import com.droidkit.actors.tasks.ActorAskImpl;
-import com.droidkit.actors.tasks.AskCallback;
-import com.droidkit.actors.tasks.TaskRequest;
-import com.droidkit.actors.tasks.TaskResult;
+import com.droidkit.actors.messages.NamedMessage;
+import com.droidkit.actors.tasks.*;
 
+import java.lang.reflect.Array;
+import java.util.Arrays;
 import java.util.UUID;
 
 /**
@@ -50,7 +50,7 @@ public class Actor {
      *
      * @return Actor System
      */
-    protected final ActorSystem system() {
+    public final ActorSystem system() {
         return context.getSystem();
     }
 
@@ -59,7 +59,7 @@ public class Actor {
      *
      * @return self reference
      */
-    protected final ActorRef self() {
+    public final ActorRef self() {
         return context.getSelf();
     }
 
@@ -146,12 +146,59 @@ public class Actor {
         }
     }
 
-    public void ask(ActorSelection selection, AskCallback callback) {
-        ask(system().actorOf(selection), callback);
+    public AskFuture combine(AskFuture... futures) {
+        return askPattern.combine(futures);
     }
 
-    public void ask(ActorRef ref, AskCallback callback) {
-        askPattern.ask(ref, callback);
+    public AskFuture combine(AskCallback<Object[]> callback, AskFuture... futures) {
+        AskFuture future = combine(futures);
+        future.addListener(callback);
+        return future;
     }
+
+    public <T> AskFuture combine(final String name, final Class<T> clazz, AskFuture... futures) {
+        return combine(new AskCallback<Object[]>() {
+            @Override
+            public void onResult(Object[] result) {
+                T[] res = (T[]) Array.newInstance(clazz, result.length);
+                for (int i = 0; i < result.length; i++) {
+                    res[i] = (T) result[i];
+                }
+                self().send(new NamedMessage(name, res));
+            }
+
+            @Override
+            public void onError(Throwable throwable) {
+
+            }
+        }, futures);
+    }
+
+    public <T> AskFuture combine(final String name, AskFuture... futures) {
+        return combine(new AskCallback<Object[]>() {
+            @Override
+            public void onResult(Object[] result) {
+                self().send(new NamedMessage(name, result));
+            }
+
+            @Override
+            public void onError(Throwable throwable) {
+
+            }
+        }, futures);
+    }
+
+    public AskFuture ask(ActorSelection selection) {
+        return askPattern.ask(system().actorOf(selection), 0, null);
+    }
+
+    public AskFuture ask(ActorSelection selection, AskCallback callback) {
+        return ask(system().actorOf(selection), callback);
+    }
+
+    public AskFuture ask(ActorRef ref, AskCallback callback) {
+        return askPattern.ask(ref, 0, callback);
+    }
+
 
 }
