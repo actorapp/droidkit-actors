@@ -15,7 +15,7 @@ allprojects {
     }
 }
 
-libraryVersion = '0.1'
+libraryVersion = '0.2'
 buildNumber = project.hasProperty("exBuildIndex") ? exBuildIndex : '20048';
 fullVersion = libraryVersion + "." + buildNumber;
 
