@@ -115,6 +115,14 @@ public class Actor {
             if (askPattern.onTaskResult((TaskResult) message)) {
                 return;
             }
+        } else if (message instanceof TaskTimeout) {
+            if (askPattern.onTaskTimeout((TaskTimeout) message)) {
+                return;
+            }
+        } else if (message instanceof TaskError) {
+            if (askPattern.onTaskError((TaskError) message)) {
+                return;
+            }
         }
         onReceive(message);
     }
@@ -169,7 +177,7 @@ public class Actor {
 
             @Override
             public void onError(Throwable throwable) {
-
+                self().send(new NamedMessage(name, throwable));
             }
         }, futures);
     }
@@ -183,13 +191,17 @@ public class Actor {
 
             @Override
             public void onError(Throwable throwable) {
-
+                self().send(new NamedMessage(name, throwable));
             }
         }, futures);
     }
 
     public AskFuture ask(ActorSelection selection) {
         return askPattern.ask(system().actorOf(selection), 0, null);
+    }
+
+    public AskFuture ask(ActorSelection selection, long delay) {
+        return askPattern.ask(system().actorOf(selection), delay, null);
     }
 
     public AskFuture ask(ActorSelection selection, AskCallback callback) {

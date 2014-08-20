@@ -43,6 +43,14 @@ public abstract class TaskActor<T> extends Actor {
                 }
                 self().send(PoisonPill.INSTANCE, dieTimeout);
             }
+        } else if (message instanceof Error) {
+            if (!isCompleted) {
+                Error error = (Error) message;
+                for (TaskRequest request : requests) {
+                    request.getRef().send(new TaskError(request.getRequestId(), error.getError()));
+                }
+                context().stopSelf();
+            }
         }
     }
 
@@ -50,6 +58,18 @@ public abstract class TaskActor<T> extends Actor {
 
     public void complete(T res) {
         self().send(new Result(res));
+    }
+
+    private static class Error {
+        private Throwable error;
+
+        private Error(Throwable error) {
+            this.error = error;
+        }
+
+        public Throwable getError() {
+            return error;
+        }
     }
 
     private static class Result {

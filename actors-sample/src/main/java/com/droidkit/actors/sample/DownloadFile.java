@@ -10,13 +10,17 @@ public class DownloadFile extends ReflectedActor {
 
     public void onReceive(String[] url) {
         combine("downloaded", byte[].class,
-                ask(HttpDownloader.download(url[0])),
-                ask(HttpDownloader.download(url[1])));
+                ask(HttpDownloader.download(url[0]), 200),
+                ask(HttpDownloader.download(url[1]), 200));
     }
 
     public void onDownloadedReceive(byte[][] data) {
         Log.d("DownloadFile:onDownloadedReceive:" + data);
         Log.d("downloaded " + data[0].length + " bytes and " + data[1].length + " bytes");
+    }
+
+    public void onDownloadedReceive(Throwable throwable) {
+        Log.d("DownloadFile:onDownloadedReceiveError:" + throwable);
     }
 
     public void onReceive(String url) {
