@@ -34,7 +34,10 @@ if (project.hasProperty("ossrhUsername") && project.hasProperty("ossrhPassword")
             mavenDeployer {
                 beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
 
-                repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
+                repository(url:
+                       isRelease ?
+                               "https://oss.sonatype.org/service/local/staging/deploy/maven2/":
+                                "https://oss.sonatype.org/content/repositories/snapshots/") {
                     authentication(userName: ossrhUsername, password: ossrhPassword)
                 }
 

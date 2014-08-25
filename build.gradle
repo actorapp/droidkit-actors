@@ -15,8 +15,10 @@ allprojects {
     }
 }
 
+isRelease = project.hasProperty("exRelease") ? Boolean.valueOf(exRelease) : false;
+
 libraryVersion = '0.2'
 buildNumber = project.hasProperty("exBuildIndex") ? exBuildIndex : '20048';
-fullVersion = libraryVersion + "." + buildNumber;
+fullVersion = isRelease ? libraryVersion + "." + buildNumber : libraryVersion + "." + buildNumber + "-SNAPSHOT";
 
 println "##teamcity[buildNumber '$fullVersion']"
