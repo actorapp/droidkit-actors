@@ -19,8 +19,8 @@ android {
     defaultConfig {
         minSdkVersion 8
         targetSdkVersion 19
-        versionCode Integer.valueOf(buildNumber)
-        versionName fullVersion
+        versionCode apkVersionCode
+        versionName apkVersionName
     }
 
     signingConfigs {

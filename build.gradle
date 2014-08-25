@@ -15,10 +15,21 @@ allprojects {
     }
 }
 
+// Global version for library project with sample
+projectVersion = '0.2'
+
+// External Parameters
 isRelease = project.hasProperty("exRelease") ? Boolean.valueOf(exRelease) : false;
+buildIndex = Integer.valueOf(project.hasProperty("exBuildIndex") ? exBuildIndex : '20048');
 
-libraryVersion = '0.2'
-buildNumber = project.hasProperty("exBuildIndex") ? exBuildIndex : '20048';
-fullVersion = isRelease ? libraryVersion + "." + buildNumber : libraryVersion + "." + buildNumber + "-SNAPSHOT";
-
+// General version for project
+fullVersion = isRelease ? projectVersion + "." + buildNumber : projectVersion + "-SNAPSHOT";
+// Notify TeamCity about version
 println "##teamcity[buildNumber '$fullVersion']"
+
+// Android application versions
+apkVersionCode = Integer.valueOf(buildIndex);
+apkVersionName = fullVersion;
+
+//Java/Android library versions
+libVersion = fullVersion;
