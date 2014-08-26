@@ -12,6 +12,7 @@ apply plugin: 'signing'
 
 repositories {
     mavenCentral()
+    maven { url "https://oss.sonatype.org/content/groups/public/" }
 }
 
 sourceCompatibility = 1.6
@@ -125,5 +126,5 @@ project.afterEvaluate {
 
 dependencies {
     compile 'com.android.support:appcompat-v7:19.+'
-    compile project(':actors')
+    compile 'com.droidkit:actors:0.2.44'
 }
