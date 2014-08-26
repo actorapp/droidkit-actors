@@ -23,7 +23,7 @@ isRelease = project.hasProperty("exRelease") ? Boolean.valueOf(exRelease) : fals
 buildIndex = Integer.valueOf(project.hasProperty("exBuildIndex") ? exBuildIndex : '20048');
 
 // General version for project
-fullVersion = isRelease ? projectVersion + "." + buildNumber : projectVersion + "-SNAPSHOT";
+fullVersion = isRelease ? projectVersion + "." + buildIndex : projectVersion + "-SNAPSHOT";
 // Notify TeamCity about version
 println "##teamcity[buildNumber '$fullVersion']"
 
