@@ -1,13 +1,9 @@
 package com.droidkit.actors;
 
-import com.droidkit.actors.mailbox.AbsMailboxesDispatcher;
-import com.droidkit.actors.mailbox.Envelope;
-import com.droidkit.actors.mailbox.MailboxesDispatcher;
-import com.droidkit.actors.messages.DeadLetter;
-import com.droidkit.actors.messages.StartActor;
+import com.droidkit.actors.mailbox.AbsActorDispatcher;
+import com.droidkit.actors.mailbox.ActorDispatcher;
 
 import java.util.HashMap;
-import java.util.UUID;
 
 /**
  * Entry point for Actor Model, creates all actors and dispatchers
@@ -29,7 +25,7 @@ public class ActorSystem {
 
     private static final String DEFAULT_DISPATCHER = "default";
 
-    private final HashMap<String, AbsMailboxesDispatcher> dispatchers = new HashMap<String, AbsMailboxesDispatcher>();
+    private final HashMap<String, AbsActorDispatcher> dispatchers = new HashMap<String, AbsActorDispatcher>();
     private final HashMap<String, ActorScope> actors = new HashMap<String, ActorScope>();
 
     /**
@@ -45,7 +41,7 @@ public class ActorSystem {
      * @param dispatcherId dispatcher id
      */
     public void addDispatcher(String dispatcherId) {
-        addDispatcher(dispatcherId, new MailboxesDispatcher(this, Runtime.getRuntime().availableProcessors()));
+        addDispatcher(dispatcherId, new ActorDispatcher(this, Runtime.getRuntime().availableProcessors()));
     }
 
     /**
@@ -54,7 +50,7 @@ public class ActorSystem {
      * @param dispatcherId dispatcher id
      * @param dispatcher   dispatcher object
      */
-    public void addDispatcher(String dispatcherId, AbsMailboxesDispatcher dispatcher) {
+    public void addDispatcher(String dispatcherId, AbsActorDispatcher dispatcher) {
         synchronized (dispatchers) {
             if (dispatchers.containsKey(dispatcherId)) {
                 return;
@@ -100,7 +96,7 @@ public class ActorSystem {
             // Finding dispatcher for actor
             String dispatcherId = props.getDispatcher() == null ? DEFAULT_DISPATCHER : props.getDispatcher();
 
-            AbsMailboxesDispatcher mailboxesDispatcher;
+            AbsActorDispatcher mailboxesDispatcher;
             synchronized (dispatchers) {
                 if (!dispatchers.containsKey(dispatcherId)) {
                     throw new RuntimeException("Unknown dispatcherId '" + dispatcherId + "'");

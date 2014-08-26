@@ -7,7 +7,7 @@ import static com.droidkit.actors.ActorTime.currentTime;
  *
  * @author Stepan Ex3NDR Korshakov (me@ex3ndr.com)
  */
-public class RunnableDispatcher extends AbstractDispatcher<Runnable, SimpleDispatchQueue<Runnable>> {
+public class RunnableDispatcher extends ThreadPoolDispatcher<Runnable, SimpleDispatchQueue<Runnable>> {
 
     /**
      * Creating of dispatcher with one thread

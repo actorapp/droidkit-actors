@@ -1,8 +1,6 @@
 package com.droidkit.actors;
 
-import com.droidkit.actors.mailbox.AbsMailboxesDispatcher;
-import com.droidkit.actors.mailbox.Envelope;
-import com.droidkit.actors.mailbox.Mailbox;
+import com.droidkit.actors.mailbox.AbsActorDispatcher;
 
 import java.util.UUID;
 
@@ -13,7 +11,7 @@ import java.util.UUID;
  */
 public class ActorRef {
     private ActorSystem system;
-    private AbsMailboxesDispatcher dispatcher;
+    private AbsActorDispatcher dispatcher;
     private UUID uuid;
     private String path;
 
@@ -34,7 +32,7 @@ public class ActorRef {
      * @param path       path of actor
      * @param uuid       uuid of actor
      */
-    public ActorRef(ActorSystem system, AbsMailboxesDispatcher dispatcher, UUID uuid, String path) {
+    public ActorRef(ActorSystem system, AbsActorDispatcher dispatcher, UUID uuid, String path) {
         this.system = system;
         this.dispatcher = dispatcher;
         this.uuid = uuid;

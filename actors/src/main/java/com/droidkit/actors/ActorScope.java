@@ -1,8 +1,7 @@
 package com.droidkit.actors;
 
-import com.droidkit.actors.mailbox.AbsMailboxesDispatcher;
+import com.droidkit.actors.mailbox.AbsActorDispatcher;
 import com.droidkit.actors.mailbox.Mailbox;
-import com.droidkit.actors.mailbox.MailboxesDispatcher;
 
 import java.util.UUID;
 
@@ -25,7 +24,7 @@ public class ActorScope {
     private final ActorRef actorRef;
     private final Mailbox mailbox;
 
-    private final AbsMailboxesDispatcher dispatcher;
+    private final AbsActorDispatcher dispatcher;
 
     private final ActorSystem actorSystem;
 
@@ -35,7 +34,7 @@ public class ActorScope {
 
     private ActorRef sender;
 
-    public ActorScope(ActorSystem actorSystem, Mailbox mailbox, ActorRef actorRef, AbsMailboxesDispatcher dispatcher, UUID uuid, String path, Props props) {
+    public ActorScope(ActorSystem actorSystem, Mailbox mailbox, ActorRef actorRef, AbsActorDispatcher dispatcher, UUID uuid, String path, Props props) {
         this.actorSystem = actorSystem;
         this.mailbox = mailbox;
         this.actorRef = actorRef;
@@ -46,7 +45,7 @@ public class ActorScope {
         this.state = STATE_STARTING;
     }
 
-    public AbsMailboxesDispatcher getDispatcher() {
+    public AbsActorDispatcher getDispatcher() {
         return dispatcher;
     }
 
