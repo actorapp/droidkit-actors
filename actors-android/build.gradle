@@ -125,6 +125,6 @@ project.afterEvaluate {
 }
 
 dependencies {
-    compile 'com.android.support:appcompat-v7:19.+'
-    compile 'com.droidkit:actors:0.2.44'
+    compile 'com.android.support:appcompat-v7:20.+'
+    compile 'com.droidkit:actors:0.2.+'
 }
