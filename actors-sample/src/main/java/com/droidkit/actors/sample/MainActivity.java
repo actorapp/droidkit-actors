@@ -49,9 +49,25 @@ public class MainActivity extends ActionBarActivity {
             }
         });
 
-        ActorRef ref = system().actorOf(CounterActor.class, "counter1");
-        for (int i = 0; i < 1000; i++) {
-            ref.send((Integer) i);
-        }
+        new Thread() {
+            @Override
+            public void run() {
+                ActorRef ref = system().actorOf(CounterActor.class, "counter1");
+                Log.d("Start");
+                for (int i = 0; i < 1000000; i++) {
+                    ref.send((Integer) i);
+                    if (i % 1000 == 0) {
+                        Log.d("Progress " + i);
+                        try {
+                            Thread.sleep(300);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+                Log.d("End");
+            }
+        }.start();
+
     }
 }

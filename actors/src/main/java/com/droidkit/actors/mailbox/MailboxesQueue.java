@@ -5,6 +5,8 @@ import com.droidkit.actors.dispatch.AbstractDispatchQueue;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Queue of multiple mailboxes for MailboxesDispatcher
@@ -13,6 +15,9 @@ import java.util.TreeMap;
  */
 public class MailboxesQueue extends AbstractDispatchQueue<Envelope> {
 
+    private static final long MULTIPLE = 10000L;
+
+    private final TreeMap<Long, Long> timeShift = new TreeMap<Long, Long>();
     private final TreeMap<Long, Envelope> envelopes = new TreeMap<Long, Envelope>();
     private final HashSet<Mailbox> blocked = new HashSet<Mailbox>();
 
@@ -48,14 +53,22 @@ public class MailboxesQueue extends AbstractDispatchQueue<Envelope> {
      * @return envelope real time
      */
     public long sendEnvelope(Envelope envelope, long time) {
+        long shift = 0;
         synchronized (envelopes) {
-            while (envelopes.containsKey(time)) {
-                time++;
+            if (timeShift.containsKey(time)) {
+                shift = timeShift.get(time);
             }
-            envelopes.put(time, envelope);
+            while (envelopes.containsKey(time * MULTIPLE + shift)) {
+                shift++;
+            }
+
+            if (shift != 0) {
+                timeShift.put(time, shift);
+            }
+            envelopes.put(time * MULTIPLE + shift, envelope);
         }
         notifyQueueChanged();
-        return time;
+        return time * MULTIPLE + shift;
     }
 
     /**
@@ -87,12 +100,14 @@ public class MailboxesQueue extends AbstractDispatchQueue<Envelope> {
 
     @Override
     public Envelope dispatch(long time) {
+        time = time * MULTIPLE;
         synchronized (envelopes) {
             synchronized (blocked) {
                 Map.Entry<Long, Envelope> envelope = firstEnvelope();
                 if (envelope != null) {
                     if (envelope.getKey() < time) {
                         envelopes.remove(envelope.getKey());
+                        envelope.getValue().getMailbox().removeEnvelope(envelope.getKey());
                         //TODO: Better design
                         // Locking of mailbox before dispatch return
                         blocked.add(envelope.getValue().getMailbox());
@@ -106,6 +121,7 @@ public class MailboxesQueue extends AbstractDispatchQueue<Envelope> {
 
     @Override
     public long waitDelay(long time) {
+        time = time * MULTIPLE;
         synchronized (envelopes) {
             synchronized (blocked) {
                 Map.Entry<Long, Envelope> envelope = firstEnvelope();
@@ -114,7 +130,7 @@ public class MailboxesQueue extends AbstractDispatchQueue<Envelope> {
                     if (envelope.getKey() <= time) {
                         return 0;
                     } else {
-                        return time - envelope.getKey();
+                        return (time - envelope.getKey()) / MULTIPLE;
                     }
                 }
             }

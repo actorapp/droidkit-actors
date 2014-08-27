@@ -54,6 +54,7 @@ android {
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile 'com.android.support:appcompat-v7:19.+'
-    compile 'com.droidkit:actors:0.2.44'
+    // compile project(":actors-android")
+    compile project(":actors")
     compile project(":actors-android")
 }
