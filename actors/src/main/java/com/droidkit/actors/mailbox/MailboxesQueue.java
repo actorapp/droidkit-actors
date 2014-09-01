@@ -130,7 +130,7 @@ public class MailboxesQueue extends AbstractDispatchQueue<Envelope> {
                     if (envelope.getKey() <= time) {
                         return 0;
                     } else {
-                        return (time - envelope.getKey()) / MULTIPLE;
+                        return (envelope.getKey() - time) / MULTIPLE;
                     }
                 }
             }

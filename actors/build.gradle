@@ -4,7 +4,7 @@ apply plugin: 'signing'
 
 sourceCompatibility = 1.6
 group = 'com.droidkit'
-version = libVersion
+version = 0.3
 
 task javadocJar(type: Jar, dependsOn: javadoc) {
     classifier = 'javadoc'
@@ -34,10 +34,7 @@ if (project.hasProperty("ossrhUsername") && project.hasProperty("ossrhPassword")
             mavenDeployer {
                 beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
 
-                repository(url:
-                       isRelease ?
-                               "https://oss.sonatype.org/service/local/staging/deploy/maven2/":
-                                "https://oss.sonatype.org/content/repositories/snapshots/") {
+                repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
                     authentication(userName: ossrhUsername, password: ossrhPassword)
                 }
 

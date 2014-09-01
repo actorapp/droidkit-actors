@@ -15,9 +15,8 @@ repositories {
     maven { url "https://oss.sonatype.org/content/groups/public/" }
 }
 
-sourceCompatibility = 1.6
 group = 'com.droidkit'
-version = fullVersion
+version = 0.3
 
 android {
     compileSdkVersion 19

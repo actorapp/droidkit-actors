@@ -14,22 +14,3 @@ allprojects {
         mavenCentral()
     }
 }
-
-// Global version for library project with sample
-projectVersion = '0.2'
-
-// External Parameters
-isRelease = project.hasProperty("exRelease") ? Boolean.valueOf(exRelease) : false;
-buildIndex = Integer.valueOf(project.hasProperty("exBuildIndex") ? exBuildIndex : '20048');
-
-// General version for project
-fullVersion = isRelease ? projectVersion + "." + buildIndex : projectVersion + "-SNAPSHOT";
-// Notify TeamCity about version
-println "##teamcity[buildNumber '$fullVersion']"
-
-// Android application versions
-apkVersionCode = Integer.valueOf(buildIndex);
-apkVersionName = fullVersion;
-
-//Java/Android library versions
-libVersion = fullVersion;
