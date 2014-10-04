@@ -16,7 +16,7 @@ repositories {
 }
 
 group = 'com.droidkit'
-version = 0.5
+version = '0.5.1'
 
 android {
     compileSdkVersion 19
@@ -125,5 +125,5 @@ project.afterEvaluate {
 
 dependencies {
     compile 'com.android.support:appcompat-v7:20.+'
-    compile 'com.droidkit:actors:0.5'
+    compile 'com.droidkit:actors:0.5.1'
 }
