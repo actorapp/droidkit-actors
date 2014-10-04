@@ -1,14 +1,18 @@
 package com.droidkit.actors;
 
+import com.droidkit.actors.concurrency.Future;
+import com.droidkit.actors.concurrency.FutureCallback;
+import com.droidkit.actors.extensions.ActorExtension;
+import com.droidkit.actors.extensions.CallbackExtension;
+import com.droidkit.actors.extensions.RunnableExtension;
 import com.droidkit.actors.mailbox.Mailbox;
 import com.droidkit.actors.messages.DeadLetter;
-import com.droidkit.actors.messages.NamedMessage;
-import com.droidkit.actors.tasks.*;
-import com.droidkit.actors.tasks.messages.TaskError;
-import com.droidkit.actors.tasks.messages.TaskResult;
-import com.droidkit.actors.tasks.messages.TaskTimeout;
+import com.droidkit.actors.tasks.ActorAskImpl;
+import com.droidkit.actors.tasks.AskCallback;
+import com.droidkit.actors.tasks.AskFuture;
+import com.droidkit.actors.typed.TypedAskExtensions;
 
-import java.lang.reflect.Array;
+import java.util.ArrayList;
 import java.util.UUID;
 
 /**
@@ -25,6 +29,9 @@ public class Actor {
     private Mailbox mailbox;
 
     private ActorAskImpl askPattern;
+    private TypedAskExtensions typedAsk;
+    private CallbackExtension callbackExtension;
+    private ArrayList<ActorExtension> extensions = new ArrayList<ActorExtension>();
 
     public Actor() {
 
@@ -45,6 +52,21 @@ public class Actor {
         this.context = context;
         this.mailbox = mailbox;
         this.askPattern = new ActorAskImpl(self());
+        this.typedAsk = new TypedAskExtensions(self());
+        this.callbackExtension = new CallbackExtension(self());
+        this.extensions.add(askPattern);
+        this.extensions.add(typedAsk);
+        this.extensions.add(callbackExtension);
+        this.extensions.add(new RunnableExtension());
+    }
+
+    /**
+     * Current actor extensions
+     *
+     * @return extensions list
+     */
+    public ArrayList<ActorExtension> getExtensions() {
+        return extensions;
     }
 
     /**
@@ -117,40 +139,26 @@ public class Actor {
 
     }
 
-    public final void onReceiveGlobal(Object message) {
-        if (message instanceof DeadLetter) {
-            if (askPattern.onDeadLetter((DeadLetter) message)) {
-                return;
-            }
-        } else if (message instanceof TaskResult) {
-            if (askPattern.onTaskResult((TaskResult) message)) {
-                return;
-            }
-        } else if (message instanceof TaskTimeout) {
-            if (askPattern.onTaskTimeout((TaskTimeout) message)) {
-                return;
-            }
-        } else if (message instanceof TaskError) {
-            if (askPattern.onTaskError((TaskError) message)) {
-                return;
-            }
-        }
-        onReceive(message);
-    }
-
     /**
      * Receiving of message
      *
      * @param message message
      */
     public void onReceive(Object message) {
-
+        drop(message);
     }
 
     /**
      * Called after actor shutdown
      */
     public void postStop() {
+
+    }
+
+    /**
+     * finally-like method before actor death
+     */
+    public void finallyStop() {
 
     }
 
@@ -165,46 +173,39 @@ public class Actor {
         }
     }
 
+    /**
+     * Dropping of message
+     *
+     * @param message message for dropping
+     */
+    public void drop(Object message) {
+        if (system().getTraceInterface() != null) {
+            system().getTraceInterface().onDrop(sender(), message, this);
+        }
+        reply(new DeadLetter(message));
+    }
+
+    /**
+     * Combine multiple asks to single one
+     *
+     * @param futures futures from ask
+     * @return future
+     */
     public AskFuture combine(AskFuture... futures) {
         return askPattern.combine(futures);
     }
 
+    /**
+     * Combine multiple asks to single one
+     *
+     * @param callback asks callback
+     * @param futures  futures from ask
+     * @return future
+     */
     public AskFuture combine(AskCallback<Object[]> callback, AskFuture... futures) {
         AskFuture future = combine(futures);
         future.addListener(callback);
         return future;
-    }
-
-    public <T> AskFuture combine(final String name, final Class<T> clazz, AskFuture... futures) {
-        return combine(new AskCallback<Object[]>() {
-            @Override
-            public void onResult(Object[] result) {
-                T[] res = (T[]) Array.newInstance(clazz, result.length);
-                for (int i = 0; i < result.length; i++) {
-                    res[i] = (T) result[i];
-                }
-                self().send(new NamedMessage(name, res));
-            }
-
-            @Override
-            public void onError(Throwable throwable) {
-                self().send(new NamedMessage(name, throwable));
-            }
-        }, futures);
-    }
-
-    public <T> AskFuture combine(final String name, AskFuture... futures) {
-        return combine(new AskCallback<Object[]>() {
-            @Override
-            public void onResult(Object[] result) {
-                self().send(new NamedMessage(name, result));
-            }
-
-            @Override
-            public void onError(Throwable throwable) {
-                self().send(new NamedMessage(name, throwable));
-            }
-        }, futures);
     }
 
     /**
@@ -235,7 +236,7 @@ public class Actor {
      * @param callback  callback for ask
      * @return Future
      */
-    public AskFuture ask(ActorSelection selection, AskCallback callback) {
+    public <T> AskFuture<T> ask(ActorSelection selection, AskCallback<T> callback) {
         return askPattern.ask(system().actorOf(selection), 0, callback);
     }
 
@@ -247,7 +248,7 @@ public class Actor {
      * @param callback  callback for ask
      * @return Future
      */
-    public AskFuture ask(ActorSelection selection, long timeout, AskCallback callback) {
+    public <T> AskFuture<T> ask(ActorSelection selection, long timeout, AskCallback<T> callback) {
         return askPattern.ask(system().actorOf(selection), timeout, callback);
     }
 
@@ -293,5 +294,28 @@ public class Actor {
      */
     public AskFuture ask(ActorRef ref, long timeout, AskCallback callback) {
         return askPattern.ask(ref, timeout, callback);
+    }
+
+    /**
+     * Ask TypedActor future method for result
+     *
+     * @param future   Future of ask
+     * @param callback callback for ask
+     * @param <T>      type of result
+     */
+    public <T> void ask(Future<T> future, FutureCallback<T> callback) {
+        typedAsk.ask(future, callback);
+    }
+
+    /**
+     * Proxy callback interface for invoking methods as actor messages
+     *
+     * @param src    sourceCallback
+     * @param tClass callback class
+     * @param <T>    type of callback
+     * @return proxy callback
+     */
+    public <T> T proxy(final T src, Class<T> tClass) {
+        return callbackExtension.proxy(src, tClass);
     }
 }

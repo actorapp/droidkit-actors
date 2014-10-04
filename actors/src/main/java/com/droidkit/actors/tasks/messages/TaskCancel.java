@@ -15,4 +15,11 @@ public class TaskCancel {
     public int getRequestId() {
         return requestId;
     }
+
+    @Override
+    public String toString() {
+        return "TaskCancel{" +
+                "requestId=" + requestId +
+                '}';
+    }
 }

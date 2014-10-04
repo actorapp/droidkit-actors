@@ -13,7 +13,7 @@ public class CounterActor extends Actor {
         if (message instanceof Integer) {
             int val = (Integer) message;
             if (last != val - 1) {
-                Log.d("Error! Wrong order expected #" + (last + 1) + " got #" + val);
+                Log.d(getPath() + "|Error! Wrong order expected #" + (last + 1) + " got #" + val);
             }
             last++;
         }

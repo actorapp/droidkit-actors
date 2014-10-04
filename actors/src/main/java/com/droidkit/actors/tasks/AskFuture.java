@@ -62,9 +62,9 @@ public class AskFuture<T> {
         isError = false;
         isCanceled = true;
 
-        for (AskCallback callback : callbacks) {
-            callback.onError(new AskCancelledException());
-        }
+//        for (AskCallback callback : callbacks) {
+//            callback.onError(new AskCancelledException());
+//        }
 
         askImpl.onTaskCancelled(reqId);
     }
@@ -96,6 +96,18 @@ public class AskFuture<T> {
 
         for (AskCallback callback : callbacks) {
             callback.onResult(res);
+        }
+    }
+
+    void onProgress(Object res) {
+        if (isCompleted) {
+            return;
+        }
+
+        for (AskCallback callback : callbacks) {
+            if (callback instanceof AskProgressCallback) {
+                ((AskProgressCallback) callback).onProgress(res);
+            }
         }
     }
 

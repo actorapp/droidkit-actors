@@ -1,6 +1,7 @@
 package com.droidkit.actors.tasks;
 
 import com.droidkit.actors.ActorRef;
+import com.droidkit.actors.extensions.ActorExtension;
 import com.droidkit.actors.messages.DeadLetter;
 import com.droidkit.actors.tasks.messages.*;
 
@@ -11,7 +12,7 @@ import java.util.HashMap;
  *
  * @author Stepan Ex3NDR Korshakov (me@ex3ndr.com)
  */
-public class ActorAskImpl {
+public class ActorAskImpl implements ActorExtension {
 
     private HashMap<Integer, AskContainer> asks = new HashMap<Integer, AskContainer>();
     private int nextReqId = 1;
@@ -82,9 +83,50 @@ public class ActorAskImpl {
         return future;
     }
 
-    public boolean onTaskResult(TaskResult result) {
+
+    @Override
+    public void preStart() {
+
+    }
+
+    @Override
+    public boolean onReceive(Object message) {
+        if (message instanceof DeadLetter) {
+            if (onDeadLetter((DeadLetter) message)) {
+                return true;
+            }
+        } else if (message instanceof TaskResult) {
+            if (onTaskResult((TaskResult) message)) {
+                return true;
+            }
+        } else if (message instanceof TaskTimeout) {
+            if (onTaskTimeout((TaskTimeout) message)) {
+                return true;
+            }
+        } else if (message instanceof TaskError) {
+            if (onTaskError((TaskError) message)) {
+                return true;
+            }
+        } else if (message instanceof TaskProgress) {
+            if (onTaskProgress((TaskProgress) message)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    @Override
+    public void postStop() {
+        for (AskContainer container : asks.values().toArray(new AskContainer[0])) {
+            container.future.cancel();
+        }
+    }
+
+    private boolean onTaskResult(TaskResult result) {
         AskContainer container = asks.remove(result.getRequestId());
         if (container != null) {
+            // Logger.d("AvatarActor", self.getPath() + "|Result");
             container.future.onResult(result.getRes());
             return true;
         }
@@ -92,9 +134,21 @@ public class ActorAskImpl {
         return false;
     }
 
-    public boolean onTaskError(TaskError error) {
+    private boolean onTaskProgress(TaskProgress progress) {
+        AskContainer container = asks.get(progress.getRequestId());
+        if (container != null) {
+            // Logger.d("AvatarActor", self.getPath() + "|Progress");
+            container.future.onProgress(progress.getProgress());
+            return true;
+        }
+
+        return false;
+    }
+
+    private boolean onTaskError(TaskError error) {
         AskContainer container = asks.remove(error.getRequestId());
         if (container != null) {
+            // Logger.d("AvatarActor", self.getPath() + "|Error");
             container.future.onError(error.getThrowable());
             return true;
         }
@@ -102,9 +156,10 @@ public class ActorAskImpl {
         return false;
     }
 
-    public boolean onTaskTimeout(TaskTimeout taskTimeout) {
+    private boolean onTaskTimeout(TaskTimeout taskTimeout) {
         AskContainer container = asks.remove(taskTimeout.getRequestId());
         if (container != null) {
+            // Logger.d("AvatarActor", self.getPath() + "|Timeout");
             container.future.onTimeout();
             return true;
         }
@@ -115,6 +170,7 @@ public class ActorAskImpl {
     public boolean onTaskCancelled(int reqId) {
         AskContainer container = asks.remove(reqId);
         if (container != null) {
+            // Logger.d("AvatarActor", self.getPath() + "|Cancel");
             container.ref.send(new TaskCancel(reqId), self);
             return true;
         }
@@ -122,14 +178,16 @@ public class ActorAskImpl {
         return false;
     }
 
-    public boolean onDeadLetter(DeadLetter letter) {
+    private boolean onDeadLetter(DeadLetter letter) {
         if (letter.getMessage() instanceof TaskRequest) {
             TaskRequest request = (TaskRequest) letter.getMessage();
-            AskContainer container = asks.remove(request.getRequestId());
+            AskContainer container = asks.get(request.getRequestId());
             if (container != null) {
-                // Mimic dead letter with timeout exception
-                container.future.onError(new AskTimeoutException());
+                container.ref.send(request, self);
                 return true;
+                // Mimic dead letter with timeout exception
+//                container.future.onError(new AskTimeoutException());
+//                return true;
             }
         }
 

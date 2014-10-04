@@ -10,4 +10,9 @@ public final class PoisonPill {
 
     private PoisonPill() {
     }
+
+    @Override
+    public String toString() {
+        return "PoisonPill";
+    }
 }

@@ -10,4 +10,9 @@ public final class StartActor {
 
     private StartActor() {
     }
+
+    @Override
+    public String toString() {
+        return "StartActor";
+    }
 }

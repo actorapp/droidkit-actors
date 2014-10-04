@@ -3,10 +3,7 @@ package com.droidkit.actors.tasks;
 import com.droidkit.actors.Actor;
 import com.droidkit.actors.ActorRef;
 import com.droidkit.actors.messages.PoisonPill;
-import com.droidkit.actors.tasks.messages.TaskCancel;
-import com.droidkit.actors.tasks.messages.TaskError;
-import com.droidkit.actors.tasks.messages.TaskRequest;
-import com.droidkit.actors.tasks.messages.TaskResult;
+import com.droidkit.actors.tasks.messages.*;
 
 import java.util.HashSet;
 
@@ -32,14 +29,29 @@ public abstract class TaskActor<T> extends Actor {
         dieTimeout = timeOut;
     }
 
+    public boolean isCompleted() {
+        return isCompleted;
+    }
+
+    public boolean isCompletedSuccess() {
+        return isCompletedSuccess;
+    }
+
     @Override
     public void preStart() {
-        startTask();
+        // Logger.d(getClass().getSimpleName(), getPath() + hashCode() + "# preStart at " + Thread.currentThread().getName());
+        self().send(new TaskStart());
     }
 
     @Override
     public void onReceive(Object message) {
-        if (message instanceof TaskRequest) {
+        // Logger.d(getClass().getSimpleName(), getPath() + " Raw On Message " + message);
+        if (message instanceof TaskStart) {
+            startTask();
+        } else if (message instanceof Obsolete) {
+            onTaskObsolete();
+            context().stopSelf();
+        } else if (message instanceof TaskRequest) {
             TaskRequest request = (TaskRequest) message;
             if (isCompleted) {
                 if (isCompletedSuccess) {
@@ -48,17 +60,25 @@ public abstract class TaskActor<T> extends Actor {
             } else {
                 TaskListener listener = new TaskListener(request.getRequestId(), sender());
                 requests.add(listener);
+                self().sendOnce(new Obsolete(), 24 * 60 * 60 * 1000L);
             }
         } else if (message instanceof TaskCancel) {
+            TaskCancel cancel = (TaskCancel) message;
+
             if (isCompleted) {
                 return;
             }
-            TaskCancel cancel = (TaskCancel) message;
             TaskListener listener = new TaskListener(cancel.getRequestId(), sender());
             requests.remove(listener);
             if (requests.size() == 0) {
-                onTaskObsolete();
-                context().stopSelf();
+                self().sendOnce(new Obsolete(), dieTimeout);
+            }
+        } else if (message instanceof Progress) {
+            Progress progress = (Progress) message;
+            if (!isCompleted) {
+                for (TaskListener request : requests) {
+                    request.getSender().send(new TaskProgress(request.getRequestId(), progress.progress));
+                }
             }
         } else if (message instanceof Result) {
             if (!isCompleted) {
@@ -81,6 +101,11 @@ public abstract class TaskActor<T> extends Actor {
                 context().stopSelf();
             }
         }
+    }
+
+    @Override
+    public void postStop() {
+        // Logger.d(getClass().getSimpleName(), getPath() + " Stopped");
     }
 
     /**
@@ -113,6 +138,15 @@ public abstract class TaskActor<T> extends Actor {
         self().send(new Error(t));
     }
 
+    /**
+     * Call this method in any thread for notification about progress
+     *
+     * @param progress progress object
+     */
+    public void progress(Object progress) {
+        self().send(new Progress(progress));
+    }
+
     private static class Error {
         private Throwable error;
 
@@ -135,6 +169,22 @@ public abstract class TaskActor<T> extends Actor {
         public Object getRes() {
             return res;
         }
+    }
+
+    private static class Progress {
+        private Object progress;
+
+        private Progress(Object progress) {
+            this.progress = progress;
+        }
+
+        public Object getProgress() {
+            return progress;
+        }
+    }
+
+    private static class Obsolete {
+
     }
 
     private static class TaskListener {

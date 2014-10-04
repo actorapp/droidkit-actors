@@ -5,8 +5,6 @@ import com.droidkit.actors.dispatch.AbstractDispatchQueue;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Queue of multiple mailboxes for MailboxesDispatcher
@@ -17,24 +15,14 @@ public class MailboxesQueue extends AbstractDispatchQueue<Envelope> {
 
     private static final long MULTIPLE = 10000L;
 
-    private final TreeMap<Long, Long> timeShift = new TreeMap<Long, Long>();
     private final TreeMap<Long, Envelope> envelopes = new TreeMap<Long, Envelope>();
+    private final HashSet<Long> usedSlot = new HashSet<Long>();
     private final HashSet<Mailbox> blocked = new HashSet<Mailbox>();
 
-    /**
-     * Locking mailbox from processing messages from it
-     *
-     * @param mailbox mailbox for locking
-     */
-    public void lockMailbox(Mailbox mailbox) {
-        synchronized (blocked) {
-            blocked.add(mailbox);
-        }
-        notifyQueueChanged();
-    }
 
     /**
      * Unlocking mailbox
+     * TODO: Better design for mailbox unlocking
      *
      * @param mailbox mailbox for unlocking
      */
@@ -55,16 +43,11 @@ public class MailboxesQueue extends AbstractDispatchQueue<Envelope> {
     public long sendEnvelope(Envelope envelope, long time) {
         long shift = 0;
         synchronized (envelopes) {
-            if (timeShift.containsKey(time)) {
-                shift = timeShift.get(time);
-            }
-            while (envelopes.containsKey(time * MULTIPLE + shift)) {
+            while (usedSlot.contains(time * MULTIPLE + shift)) {
                 shift++;
             }
 
-            if (shift != 0) {
-                timeShift.put(time, shift);
-            }
+            usedSlot.add(time * MULTIPLE + shift);
             envelopes.put(time * MULTIPLE + shift, envelope);
         }
         notifyQueueChanged();
@@ -141,5 +124,26 @@ public class MailboxesQueue extends AbstractDispatchQueue<Envelope> {
     @Override
     protected void putToQueueImpl(Envelope message, long atTime) {
         sendEnvelope(message, atTime);
+    }
+
+    private class QueueItem implements Comparable<QueueItem> {
+        private long time;
+        private Envelope envelope;
+
+        private QueueItem(long time, Envelope envelope) {
+            this.time = time;
+            this.envelope = envelope;
+        }
+
+        @Override
+        public int compareTo(QueueItem queueItem) {
+            if (queueItem.time > time) {
+                return 1;
+            } else if (queueItem.time < time) {
+                return -1;
+            } else {
+                return 0;
+            }
+        }
     }
 }

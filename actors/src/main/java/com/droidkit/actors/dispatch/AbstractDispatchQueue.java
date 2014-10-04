@@ -1,7 +1,7 @@
 package com.droidkit.actors.dispatch;
 
 /**
- * Queue for dispatching messages for {@link ThreadPoolDispatcher}.
+ * Queue for dispatching messages for {@link com.droidkit.actors.dispatch.ThreadPoolDispatcher}.
  * Implementation MUST BE thread-safe.
  *
  * @author Stepan Ex3NDR Korshakov (me@ex3ndr.com)

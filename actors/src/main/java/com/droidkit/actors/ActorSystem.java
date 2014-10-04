@@ -1,5 +1,6 @@
 package com.droidkit.actors;
 
+import com.droidkit.actors.debug.TraceInterface;
 import com.droidkit.actors.mailbox.AbsActorDispatcher;
 import com.droidkit.actors.mailbox.ActorDispatcher;
 
@@ -26,13 +27,42 @@ public class ActorSystem {
     private static final String DEFAULT_DISPATCHER = "default";
 
     private final HashMap<String, AbsActorDispatcher> dispatchers = new HashMap<String, AbsActorDispatcher>();
-    private final HashMap<String, ActorScope> actors = new HashMap<String, ActorScope>();
+
+    private TraceInterface traceInterface;
+
+    private ClassLoader classLoader;
 
     /**
      * Creating new actor system
      */
     public ActorSystem() {
-        addDispatcher(DEFAULT_DISPATCHER);
+        this(true);
+    }
+
+
+    /**
+     * Creating new actor system
+     */
+    public ActorSystem(boolean addDefaultDispatcher) {
+        if (addDefaultDispatcher) {
+            addDispatcher(DEFAULT_DISPATCHER);
+        }
+        classLoader = getClass().getClassLoader();
+    }
+
+    /**
+     * Adding dispatcher with specific threads count
+     *
+     * @param dispatcherId dispatcher id
+     * @param threadsCount threads count
+     */
+    public void addDispatcher(String dispatcherId, int threadsCount) {
+        synchronized (dispatchers) {
+            if (dispatchers.containsKey(dispatcherId)) {
+                return;
+            }
+            dispatchers.put(dispatcherId, new ActorDispatcher(dispatcherId, this, threadsCount));
+        }
     }
 
     /**
@@ -41,7 +71,7 @@ public class ActorSystem {
      * @param dispatcherId dispatcher id
      */
     public void addDispatcher(String dispatcherId) {
-        addDispatcher(dispatcherId, new ActorDispatcher(this, Runtime.getRuntime().availableProcessors()));
+        addDispatcher(dispatcherId, new ActorDispatcher(dispatcherId, this, Runtime.getRuntime().availableProcessors()));
     }
 
     /**
@@ -83,47 +113,52 @@ public class ActorSystem {
      * @return ActorRef
      */
     public ActorRef actorOf(Props props, String path) {
-        // TODO: Remove lock
-        synchronized (actors) {
-            // Searching for already created actor
-            ActorScope scope = actors.get(path);
+        String dispatcherId = props.getDispatcher() == null ? DEFAULT_DISPATCHER : props.getDispatcher();
 
-            // If already created - return ActorRef
-            if (scope != null) {
-                return scope.getActorRef();
+        AbsActorDispatcher mailboxesDispatcher;
+        synchronized (dispatchers) {
+            if (!dispatchers.containsKey(dispatcherId)) {
+                throw new RuntimeException("Unknown dispatcherId '" + dispatcherId + "'");
             }
-
-            // Finding dispatcher for actor
-            String dispatcherId = props.getDispatcher() == null ? DEFAULT_DISPATCHER : props.getDispatcher();
-
-            AbsActorDispatcher mailboxesDispatcher;
-            synchronized (dispatchers) {
-                if (!dispatchers.containsKey(dispatcherId)) {
-                    throw new RuntimeException("Unknown dispatcherId '" + dispatcherId + "'");
-                }
-                mailboxesDispatcher = dispatchers.get(dispatcherId);
-            }
-
-            // Creating actor scope
-            scope = mailboxesDispatcher.createScope(path, props);
-
-            // Saving actor in collection
-            actors.put(path, scope);
-
-            return scope.getActorRef();
+            mailboxesDispatcher = dispatchers.get(dispatcherId);
         }
+
+        return mailboxesDispatcher.referenceActor(path, props);
     }
 
     /**
-     * WARRING! Call only during processing message in actor!
+     * Getting current trace interface for actor system
      *
-     * @param scope Actor Scope
+     * @return trace interface
      */
-    void removeActor(ActorScope scope) {
-        synchronized (actors) {
-            if (actors.get(scope.getPath()) == scope) {
-                actors.remove(scope.getPath());
-            }
-        }
+    public TraceInterface getTraceInterface() {
+        return traceInterface;
+    }
+
+    /**
+     * Setting current trace interface for actor system
+     *
+     * @param traceInterface trace interface
+     */
+    public void setTraceInterface(TraceInterface traceInterface) {
+        this.traceInterface = traceInterface;
+    }
+
+    /**
+     * Getting actor system class loader
+     *
+     * @return class loader
+     */
+    public ClassLoader getClassLoader() {
+        return classLoader;
+    }
+
+    /**
+     * Setting actor system class loader
+     *
+     * @param classLoader class loader
+     */
+    public void setClassLoader(ClassLoader classLoader) {
+        this.classLoader = classLoader;
     }
 }

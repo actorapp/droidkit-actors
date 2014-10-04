@@ -1,5 +1,7 @@
 package com.droidkit.actors.dispatch;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 import static com.droidkit.actors.ActorTime.currentTime;
 
 /**
@@ -10,20 +12,27 @@ import static com.droidkit.actors.ActorTime.currentTime;
  */
 public class ThreadPoolDispatcher<T, Q extends AbstractDispatchQueue<T>> extends AbstractDispatcher<T, Q> {
 
-    private final Thread[] threads;
+    private static final AtomicInteger INDEX = new AtomicInteger(1);
+
+    private Thread[] threads;
+
+    private final int count;
+    private final int priority;
 
     private boolean isClosed = false;
+
+    private final int id;
 
     /**
      * Dispatcher constructor. Create threads with NORM_PRIORITY.
      *
      * @param count    thread count
      * @param queue    queue for messages
-     *                 (see {@link com.droidkit.actors.dispatch.AbstractDispatchQueue} for more information)
+     *                 (see {@link AbstractDispatchQueue} for more information)
      * @param dispatch Dispatch for message processing
      */
     public ThreadPoolDispatcher(int count, Q queue, Dispatch<T> dispatch) {
-        this(count, Thread.NORM_PRIORITY, queue, dispatch);
+        this(count, Thread.NORM_PRIORITY, queue, dispatch, true);
     }
 
     /**
@@ -32,10 +41,10 @@ public class ThreadPoolDispatcher<T, Q extends AbstractDispatchQueue<T>> extends
      *
      * @param count thread count
      * @param queue queue for messages
-     *              (see {@link com.droidkit.actors.dispatch.AbstractDispatchQueue} for more information)
+     *              (see {@link AbstractDispatchQueue} for more information)
      */
     public ThreadPoolDispatcher(int count, Q queue) {
-        this(count, Thread.NORM_PRIORITY, queue, null);
+        this(count, Thread.NORM_PRIORITY, queue, null, true);
     }
 
     /**
@@ -45,10 +54,10 @@ public class ThreadPoolDispatcher<T, Q extends AbstractDispatchQueue<T>> extends
      * @param count    thread count
      * @param priority thread priority
      * @param queue    queue for messages
-     *                 (see {@link com.droidkit.actors.dispatch.AbstractDispatchQueue} for more information)
+     *                 (see {@link AbstractDispatchQueue} for more information)
      */
     public ThreadPoolDispatcher(int count, int priority, Q queue) {
-        this(count, priority, queue, null);
+        this(count, priority, queue, null, true);
     }
 
 
@@ -58,15 +67,29 @@ public class ThreadPoolDispatcher<T, Q extends AbstractDispatchQueue<T>> extends
      * @param count    thread count
      * @param priority thread priority
      * @param queue    queue for messages
-     *                 (see {@link com.droidkit.actors.dispatch.AbstractDispatchQueue} for more information)
+     *                 (see {@link AbstractDispatchQueue} for more information)
      * @param dispatch Dispatch for message processing
      */
-    public ThreadPoolDispatcher(int count, int priority, final Q queue, Dispatch<T> dispatch) {
+    public ThreadPoolDispatcher(int count, int priority, final Q queue, Dispatch<T> dispatch, boolean createThreads) {
         super(queue, dispatch);
 
+        this.id = INDEX.getAndIncrement();
+        this.count = count;
+        this.priority = priority;
+
+        if (createThreads) {
+            startPool();
+        }
+    }
+
+    public void startPool() {
+        if (this.threads != null) {
+            return;
+        }
         this.threads = new Thread[count];
         for (int i = 0; i < count; i++) {
             this.threads[i] = new DispatcherThread();
+            this.threads[i].setName("ThreadPool_" + id + "_" + i);
             this.threads[i].setPriority(priority);
             this.threads[i].start();
         }
@@ -99,11 +122,12 @@ public class ThreadPoolDispatcher<T, Q extends AbstractDispatchQueue<T>> extends
         @Override
         public void run() {
             while (!isClosed) {
-                T action = getQueue().dispatch(currentTime());
+                long time = currentTime();
+                T action = getQueue().dispatch(time);
                 if (action == null) {
                     synchronized (threads) {
                         try {
-                            long delay = getQueue().waitDelay(currentTime());
+                            long delay = getQueue().waitDelay(time);
                             if (delay > 0) {
                                 threads.wait(delay);
                             }

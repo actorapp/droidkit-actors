@@ -22,4 +22,11 @@ public class TaskResult<T> {
     public int getRequestId() {
         return requestId;
     }
+
+    @Override
+    public String toString() {
+        return "TaskResult{" +
+                "requestId=" + requestId +
+                '}';
+    }
 }

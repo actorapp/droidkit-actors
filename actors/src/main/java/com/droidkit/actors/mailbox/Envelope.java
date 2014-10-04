@@ -1,6 +1,8 @@
 package com.droidkit.actors.mailbox;
 
 import com.droidkit.actors.ActorRef;
+import com.droidkit.actors.ActorScope;
+import com.droidkit.actors.ActorTime;
 
 /**
  * Actor system envelope
@@ -11,6 +13,8 @@ public class Envelope {
     private final Object message;
     private final ActorRef sender;
     private final Mailbox mailbox;
+    private ActorScope scope;
+    private long sendTime;
 
     /**
      * Creating of envelope
@@ -19,10 +23,16 @@ public class Envelope {
      * @param mailbox mailbox
      * @param sender  sender reference
      */
-    public Envelope(Object message, Mailbox mailbox, ActorRef sender) {
+    public Envelope(Object message, ActorScope scope, Mailbox mailbox, ActorRef sender) {
+        this.scope = scope;
         this.message = message;
         this.sender = sender;
         this.mailbox = mailbox;
+        this.sendTime = ActorTime.currentTime();
+    }
+
+    public ActorScope getScope() {
+        return scope;
     }
 
     /**
@@ -50,5 +60,14 @@ public class Envelope {
      */
     public ActorRef getSender() {
         return sender;
+    }
+
+    public long getSendTime() {
+        return sendTime;
+    }
+
+    @Override
+    public String toString() {
+        return "{" + message + " -> " + scope.getPath() + "}";
     }
 }

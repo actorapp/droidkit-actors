@@ -26,7 +26,7 @@ android {
 
     signingConfigs {
         release {
-        
+
         }
     }
 
@@ -40,7 +40,7 @@ android {
 
     if (project.hasProperty('androidStore') &&
             project.hasProperty('androidStorePass') &&
-            project.hasProperty('androidAliasPass')&&
+            project.hasProperty('androidAliasPass') &&
             project.hasProperty('androidAlias')) {
         android.signingConfigs.release.storeFile = file(androidStore)
         android.signingConfigs.release.storePassword = androidStorePass

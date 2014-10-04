@@ -1,6 +1,7 @@
 package com.droidkit.actors;
 
 import com.droidkit.actors.mailbox.AbsActorDispatcher;
+import com.droidkit.actors.mailbox.ActorEndpoint;
 import com.droidkit.actors.mailbox.Mailbox;
 
 import java.util.UUID;
@@ -13,10 +14,6 @@ import java.util.UUID;
  */
 public class ActorScope {
 
-    public static final int STATE_STARTING = 0;
-    public static final int STATE_RUNNING = 1;
-    public static final int STATE_SHUTDOWN = 2;
-
     private final UUID uuid;
     private final String path;
     private final Props props;
@@ -28,29 +25,30 @@ public class ActorScope {
 
     private final ActorSystem actorSystem;
 
-    private int state;
-
     private Actor actor;
 
     private ActorRef sender;
 
-    public ActorScope(ActorSystem actorSystem, Mailbox mailbox, ActorRef actorRef, AbsActorDispatcher dispatcher, UUID uuid, String path, Props props) {
+    private ActorEndpoint endpoint;
+
+    public ActorScope(ActorSystem actorSystem, Mailbox mailbox, AbsActorDispatcher dispatcher, UUID uuid, String path, Props props,
+                      ActorEndpoint endpoint) {
         this.actorSystem = actorSystem;
         this.mailbox = mailbox;
-        this.actorRef = actorRef;
+        this.actorRef = new ActorRef(endpoint, actorSystem, dispatcher, uuid, path);
         this.dispatcher = dispatcher;
         this.uuid = uuid;
         this.path = path;
         this.props = props;
-        this.state = STATE_STARTING;
+        this.endpoint = endpoint;
+    }
+
+    public ActorEndpoint getEndpoint() {
+        return endpoint;
     }
 
     public AbsActorDispatcher getDispatcher() {
         return dispatcher;
-    }
-
-    public int getState() {
-        return state;
     }
 
     public UUID getUuid() {
@@ -89,40 +87,11 @@ public class ActorScope {
         this.sender = sender;
     }
 
-    /**
-     * Create actor
-     *
-     * @throws Exception
-     */
-    public void createActor() throws Exception {
-        if (state == STATE_STARTING) {
-            actor = props.create();
-            CurrentActor.setCurrentActor(actor);
-            actor.initActor(getUuid(), getPath(), new ActorContext(this), getMailbox());
-            actor.preStart();
-        } else if (state == STATE_RUNNING) {
-            throw new RuntimeException("Actor already created");
-        } else if (state == STATE_SHUTDOWN) {
-            throw new RuntimeException("Actor shutdown");
-        } else {
-            throw new RuntimeException("Unknown ActorScope state");
-        }
+    public void onActorCreated(Actor actor) {
+        this.actor = actor;
     }
 
-    /**
-     * Shutdown actor
-     *
-     * @throws Exception
-     */
-    public void shutdownActor() throws Exception {
-        if (state == STATE_STARTING || state == STATE_RUNNING ||
-                state == STATE_SHUTDOWN) {
-            actorSystem.removeActor(this);
-            dispatcher.disconnectScope(this);
-            actor.postStop();
-            actor = null;
-        } else {
-            throw new RuntimeException("Unknown ActorScope state");
-        }
+    public void onActorDie() {
+        this.actor = null;
     }
 }

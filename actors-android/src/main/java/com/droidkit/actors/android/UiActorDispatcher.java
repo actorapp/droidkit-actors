@@ -11,8 +11,8 @@ import com.droidkit.actors.mailbox.MailboxesQueue;
  */
 public class UiActorDispatcher extends AbsActorDispatcher {
 
-    public UiActorDispatcher(ActorSystem actorSystem) {
-        super(actorSystem);
+    public UiActorDispatcher(String name, ActorSystem actorSystem) {
+        super(name, actorSystem);
 
         initDispatcher(new UiDispatcher<Envelope, MailboxesQueue>(new MailboxesQueue(), new Dispatch<Envelope>() {
             @Override

@@ -21,4 +21,12 @@ public class TaskError {
     public Throwable getThrowable() {
         return throwable;
     }
+
+    @Override
+    public String toString() {
+        return "TaskError{" +
+                "requestId=" + requestId +
+                ", throwable=" + throwable +
+                '}';
+    }
 }

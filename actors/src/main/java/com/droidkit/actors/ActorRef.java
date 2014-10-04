@@ -1,6 +1,7 @@
 package com.droidkit.actors;
 
 import com.droidkit.actors.mailbox.AbsActorDispatcher;
+import com.droidkit.actors.mailbox.ActorEndpoint;
 
 import java.util.UUID;
 
@@ -14,6 +15,7 @@ public class ActorRef {
     private AbsActorDispatcher dispatcher;
     private UUID uuid;
     private String path;
+    private ActorEndpoint endpoint;
 
     public UUID getUuid() {
         return uuid;
@@ -21,6 +23,14 @@ public class ActorRef {
 
     public String getPath() {
         return path;
+    }
+
+    public ActorSystem system() {
+        return system;
+    }
+
+    public ActorEndpoint getEndpoint() {
+        return endpoint;
     }
 
     /**
@@ -32,7 +42,8 @@ public class ActorRef {
      * @param path       path of actor
      * @param uuid       uuid of actor
      */
-    public ActorRef(ActorSystem system, AbsActorDispatcher dispatcher, UUID uuid, String path) {
+    public ActorRef(ActorEndpoint endpoint, ActorSystem system, AbsActorDispatcher dispatcher, UUID uuid, String path) {
+        this.endpoint = endpoint;
         this.system = system;
         this.dispatcher = dispatcher;
         this.uuid = uuid;
@@ -76,7 +87,7 @@ public class ActorRef {
      * @param sender  sender
      */
     public void send(Object message, long delay, ActorRef sender) {
-        dispatcher.sendMessage(path, message, ActorTime.currentTime() + delay, sender);
+        dispatcher.sendMessage(endpoint, message, ActorTime.currentTime() + delay, sender);
     }
 
     /**
@@ -116,6 +127,6 @@ public class ActorRef {
      * @param sender  sender
      */
     public void sendOnce(Object message, long delay, ActorRef sender) {
-        dispatcher.sendMessageOnce(path, message, ActorTime.currentTime() + delay, sender);
+        dispatcher.sendMessageOnce(endpoint, message, ActorTime.currentTime() + delay, sender);
     }
 }

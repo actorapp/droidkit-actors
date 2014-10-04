@@ -51,7 +51,7 @@ public class ActorContext {
      */
     public void stopSelf() {
         try {
-            actorScope.shutdownActor();
+            actorScope.getDispatcher().killGracefully(actorScope);
         } catch (Exception e) {
             e.printStackTrace();
         }

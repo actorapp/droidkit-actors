@@ -1,24 +1,30 @@
 package com.droidkit.actors.tasks.messages;
 
 /**
- * Message about requesting task
+ * Message with task progress
  *
  * @author Stepan Ex3NDR Korshakov (me@ex3ndr.com)
  */
-public class TaskRequest {
+public class TaskProgress {
     private final int requestId;
+    private final Object progress;
 
-    public TaskRequest(int requestId) {
+    public TaskProgress(int requestId, Object progress) {
         this.requestId = requestId;
+        this.progress = progress;
     }
 
     public int getRequestId() {
         return requestId;
     }
 
+    public Object getProgress() {
+        return progress;
+    }
+
     @Override
     public String toString() {
-        return "TaskRequest{" +
+        return "TaskProgress{" +
                 "requestId=" + requestId +
                 '}';
     }
