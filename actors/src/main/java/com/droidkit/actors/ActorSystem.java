@@ -159,6 +159,9 @@ public class ActorSystem {
      * @param classLoader class loader
      */
     public void setClassLoader(ClassLoader classLoader) {
+        if (classLoader == null) {
+            throw new IllegalArgumentException("ClassLoader cannot be null");
+        }
         this.classLoader = classLoader;
     }
 }

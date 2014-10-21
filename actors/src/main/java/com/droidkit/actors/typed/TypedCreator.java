@@ -13,7 +13,7 @@ import java.lang.reflect.Proxy;
  */
 public class TypedCreator {
     public static <T> T typed(final ActorRef ref, Class<T> tClass) {
-        return (T) Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(),
+        return (T) Proxy.newProxyInstance(ref.system().getClassLoader(),
                 new Class[]{tClass}, new InvocationHandler() {
                     @Override
                     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
