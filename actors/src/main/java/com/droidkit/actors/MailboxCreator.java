@@ -4,8 +4,16 @@ import com.droidkit.actors.mailbox.Mailbox;
 import com.droidkit.actors.mailbox.MailboxesQueue;
 
 /**
- * Created by ex3ndr on 07.09.14.
+ * Creator of mailbox for Actor
+ *
+ * @author Steve Ex3NDR Korshakov (steve@actor.im)
  */
 public interface MailboxCreator {
+    /**
+     * Creating of mailbox in queue
+     *
+     * @param queue mailbox queue
+     * @return mailbox
+     */
     public Mailbox createMailbox(MailboxesQueue queue);
 }

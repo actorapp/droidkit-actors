@@ -7,7 +7,7 @@ import java.util.TreeMap;
 /**
  * Simple queue implementation for dispatchers
  *
- * @author Stepan Ex3NDR Korshakov (me@ex3ndr.com)
+ * @author Steve Ex3NDR Korshakov (steve@actor.im)
  */
 public class SimpleDispatchQueue<T> extends AbstractDispatchQueue<T> {
 
@@ -34,7 +34,7 @@ public class SimpleDispatchQueue<T> extends AbstractDispatchQueue<T> {
     }
 
     @Override
-    public T dispatch(long time) {
+    public DispatchResult dispatch(long time) {
         synchronized (messages) {
             if (messages.size() > 0) {
                 long firstKey = messages.firstKey();
@@ -42,30 +42,16 @@ public class SimpleDispatchQueue<T> extends AbstractDispatchQueue<T> {
                     Message message = messages.remove(firstKey);
                     T res = message.action;
                     recycle(message);
-                    return res;
-                }
-            }
-        }
-        return null;
-    }
-
-    @Override
-    public long waitDelay(long time) {
-        synchronized (messages) {
-            if (messages.size() > 0) {
-                long firstKey = messages.firstKey();
-                if (firstKey < time) {
-                    return 0;
+                    return result(res);
                 } else {
-                    return time - firstKey;
+                    return delay(time - firstKey);
                 }
             }
         }
-        return FOREVER;
+        return delay(FOREVER);
     }
 
-    @Override
-    public void putToQueueImpl(T action, long atTime) {
+    public void putToQueue(T action, long atTime) {
         Message message = obtainMessage();
         message.setMessage(action, atTime);
         synchronized (messages) {
@@ -74,6 +60,7 @@ public class SimpleDispatchQueue<T> extends AbstractDispatchQueue<T> {
             }
             messages.put(atTime, message);
         }
+        notifyQueueChanged();
     }
 
     /**

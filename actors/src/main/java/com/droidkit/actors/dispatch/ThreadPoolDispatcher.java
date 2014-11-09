@@ -8,7 +8,7 @@ import static com.droidkit.actors.ActorTime.currentTime;
  * ThreadPoolDispatcher is used for dispatching messages on it's own threads.
  * Class is completely thread-safe.
  *
- * @author Stepan Ex3NDR Korshakov (me@ex3ndr.com)
+ * @author Steve Ex3NDR Korshakov (steve@actor.im)
  */
 public class ThreadPoolDispatcher<T, Q extends AbstractDispatchQueue<T>> extends AbstractDispatcher<T, Q> {
 
@@ -23,6 +23,8 @@ public class ThreadPoolDispatcher<T, Q extends AbstractDispatchQueue<T>> extends
 
     private final int id;
 
+    private final String name;
+
     /**
      * Dispatcher constructor. Create threads with NORM_PRIORITY.
      *
@@ -31,8 +33,8 @@ public class ThreadPoolDispatcher<T, Q extends AbstractDispatchQueue<T>> extends
      *                 (see {@link AbstractDispatchQueue} for more information)
      * @param dispatch Dispatch for message processing
      */
-    public ThreadPoolDispatcher(int count, Q queue, Dispatch<T> dispatch) {
-        this(count, Thread.NORM_PRIORITY, queue, dispatch, true);
+    public ThreadPoolDispatcher(String name, int count, Q queue, Dispatch<T> dispatch) {
+        this(name, count, Thread.NORM_PRIORITY, queue, dispatch, true);
     }
 
     /**
@@ -43,8 +45,8 @@ public class ThreadPoolDispatcher<T, Q extends AbstractDispatchQueue<T>> extends
      * @param queue queue for messages
      *              (see {@link AbstractDispatchQueue} for more information)
      */
-    public ThreadPoolDispatcher(int count, Q queue) {
-        this(count, Thread.NORM_PRIORITY, queue, null, true);
+    public ThreadPoolDispatcher(String name, int count, Q queue) {
+        this(name, count, Thread.NORM_PRIORITY, queue, null, true);
     }
 
     /**
@@ -56,8 +58,8 @@ public class ThreadPoolDispatcher<T, Q extends AbstractDispatchQueue<T>> extends
      * @param queue    queue for messages
      *                 (see {@link AbstractDispatchQueue} for more information)
      */
-    public ThreadPoolDispatcher(int count, int priority, Q queue) {
-        this(count, priority, queue, null, true);
+    public ThreadPoolDispatcher(String name, int count, int priority, Q queue) {
+        this(name, count, priority, queue, null, true);
     }
 
 
@@ -70,10 +72,11 @@ public class ThreadPoolDispatcher<T, Q extends AbstractDispatchQueue<T>> extends
      *                 (see {@link AbstractDispatchQueue} for more information)
      * @param dispatch Dispatch for message processing
      */
-    public ThreadPoolDispatcher(int count, int priority, final Q queue, Dispatch<T> dispatch, boolean createThreads) {
+    public ThreadPoolDispatcher(String name, int count, int priority, final Q queue, Dispatch<T> dispatch, boolean createThreads) {
         super(queue, dispatch);
 
         this.id = INDEX.getAndIncrement();
+        this.name = name;
         this.count = count;
         this.priority = priority;
 
@@ -89,7 +92,7 @@ public class ThreadPoolDispatcher<T, Q extends AbstractDispatchQueue<T>> extends
         this.threads = new Thread[count];
         for (int i = 0; i < count; i++) {
             this.threads[i] = new DispatcherThread();
-            this.threads[i].setName("ThreadPool_" + id + "_" + i);
+            this.threads[i].setName("Pool_" + name + "_" + i);
             this.threads[i].setPriority(priority);
             this.threads[i].start();
         }
@@ -111,6 +114,9 @@ public class ThreadPoolDispatcher<T, Q extends AbstractDispatchQueue<T>> extends
         if (threads != null) {
             synchronized (threads) {
                 threads.notifyAll();
+                for (Thread thread : threads) {
+                    ((DispatcherThread) thread).setChanged(true);
+                }
             }
         }
     }
@@ -119,15 +125,38 @@ public class ThreadPoolDispatcher<T, Q extends AbstractDispatchQueue<T>> extends
      * Thread class for dispatching
      */
     private class DispatcherThread extends Thread {
+
+        private boolean isChanged = false;
+
+        public boolean isChanged() {
+            return isChanged;
+        }
+
+        public void setChanged(boolean isChanged) {
+            this.isChanged = isChanged;
+        }
+
         @Override
         public void run() {
             while (!isClosed) {
                 long time = currentTime();
-                T action = getQueue().dispatch(time);
-                if (action == null) {
+
+                synchronized (threads) {
+                    isChanged = false;
+                }
+
+                final DispatchResult action = getQueue().dispatch(time);
+
+                if (!action.isResult()) {
+                    if (isChanged) {
+                        continue;
+                    }
+
                     synchronized (threads) {
+                        long delay = action.getDelay();
+                        action.recycle();
+
                         try {
-                            long delay = getQueue().waitDelay(time);
                             if (delay > 0) {
                                 threads.wait(delay);
                             }
@@ -140,7 +169,9 @@ public class ThreadPoolDispatcher<T, Q extends AbstractDispatchQueue<T>> extends
                 }
 
                 try {
-                    dispatchMessage(action);
+                    T actiondData = (T) action.getRes();
+                    action.recycle();
+                    dispatchMessage(actiondData);
                 } catch (Throwable t) {
                     // Possibly danger situation, but i hope this will not corrupt JVM
                     // For example: on Android we could always continue execution after OutOfMemoryError

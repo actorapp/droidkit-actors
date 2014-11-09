@@ -18,7 +18,7 @@ import java.util.UUID;
 /**
  * Actor object
  *
- * @author Stepan Ex3NDR Korshakov (me@ex3ndr.com)
+ * @author Steve Ex3NDR Korshakov (steve@actor.im)
  */
 public class Actor {
 

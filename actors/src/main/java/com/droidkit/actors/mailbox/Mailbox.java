@@ -1,19 +1,21 @@
 package com.droidkit.actors.mailbox;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import com.droidkit.actors.mailbox.collections.EnvelopeCollection;
 
 /**
  * Actor mailbox, queue of envelopes.
  *
- * @author Stepan Ex3NDR Korshakov (me@ex3ndr.com)
+ * @author Steve Ex3NDR Korshakov (steve@actor.im)
  */
 public class Mailbox {
-    private final Map<Long, Envelope> envelopes = Collections.synchronizedMap(new HashMap<Long, Envelope>());
+    private EnvelopeCollection envelopes;
 
-    private MailboxesQueue queue;
+    private final EnvelopeCollection.EnvelopeComparator comparator = new EnvelopeCollection.EnvelopeComparator() {
+        @Override
+        public boolean equals(Envelope a, Envelope b) {
+            return isEqualEnvelope(a, b);
+        }
+    };
 
     /**
      * Creating mailbox
@@ -21,8 +23,9 @@ public class Mailbox {
      * @param queue MailboxesQueue
      */
     public Mailbox(MailboxesQueue queue) {
-        this.queue = queue;
+        this.envelopes = new EnvelopeCollection(queue.getEnvelopeRoot());
     }
+
 
     /**
      * Send envelope at time
@@ -35,11 +38,7 @@ public class Mailbox {
             throw new RuntimeException("envelope.mailbox != this mailbox");
         }
 
-        long id = queue.sendEnvelope(envelope, time);
-
-        synchronized (envelopes) {
-            envelopes.put(id, envelope);
-        }
+        envelopes.putEnvelope(envelope, time);
     }
 
     /**
@@ -53,24 +52,32 @@ public class Mailbox {
             throw new RuntimeException("envelope.mailbox != this mailbox");
         }
 
-        synchronized (envelopes) {
-            Iterator<Map.Entry<Long, Envelope>> iterator = envelopes.entrySet().iterator();
-            while (iterator.hasNext()) {
-                Map.Entry<Long, Envelope> entry = iterator.next();
-                if (isEqualEnvelope(entry.getValue(), envelope)) {
-                    queue.removeEnvelope(entry.getKey());
-                    iterator.remove();
-                }
-            }
-        }
-
-        schedule(envelope, time);
+        envelopes.putEnvelopeOnce(envelope, time, comparator);
     }
 
-    void removeEnvelope(long key) {
-        synchronized (envelopes) {
-            envelopes.remove(key);
-        }
+    /**
+     * Removing of envelope from queue
+     *
+     * @param envelope envelope for remove
+     */
+    public void unschedule(Envelope envelope) {
+        envelopes.removeEnvelope(envelope, comparator);
+    }
+
+    /**
+     * Getting all envelopes in mailbox
+     *
+     * @return envelopes
+     */
+    public Envelope[] allEnvelopes() {
+        return envelopes.allEnvelopes();
+    }
+
+    /**
+     * Clearing mailbox
+     */
+    public void clear() {
+        envelopes.clear();
     }
 
     /**
@@ -85,22 +92,7 @@ public class Mailbox {
         return a.getMessage().getClass() == b.getMessage().getClass();
     }
 
-    public Envelope[] allEnvelopes() {
-        synchronized (envelopes) {
-            return envelopes.values().toArray(new Envelope[0]);
-        }
-    }
-
-    public synchronized int getMailboxSize() {
-        return envelopes.size();
-    }
-
-    public synchronized void clear() {
-        synchronized (envelopes) {
-            for (Map.Entry<Long, Envelope> entry : envelopes.entrySet()) {
-                queue.removeEnvelope(entry.getKey());
-            }
-            envelopes.clear();
-        }
+    EnvelopeCollection getEnvelopes() {
+        return envelopes;
     }
 }

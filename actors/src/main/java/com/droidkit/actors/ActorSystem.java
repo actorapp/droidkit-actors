@@ -9,7 +9,7 @@ import java.util.HashMap;
 /**
  * Entry point for Actor Model, creates all actors and dispatchers
  *
- * @author Stepan Ex3NDR Korshakov (me@ex3ndr.com)
+ * @author Steve Ex3NDR Korshakov (steve@actor.im)
  */
 public class ActorSystem {
 

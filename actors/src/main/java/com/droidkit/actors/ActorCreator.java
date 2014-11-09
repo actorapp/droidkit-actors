@@ -1,9 +1,9 @@
 package com.droidkit.actors;
 
 /**
- * Object for manual actors creating
+ * Creator of custom actors
  *
- * @author Stepan Ex3NDR Korshakov (me@ex3ndr.com)
+ * @author Steve Ex3NDR Korshakov (steve@actor.im)
  */
 public interface ActorCreator<T extends Actor> {
     /**

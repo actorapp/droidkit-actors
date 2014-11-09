@@ -8,7 +8,7 @@ import java.util.UUID;
 /**
  * Reference to Actor that allows to send messages to real Actor
  *
- * @author Stepan Ex3NDR Korshakov (me@ex3ndr.com)
+ * @author Steve Ex3NDR Korshakov (steve@actor.im)
  */
 public class ActorRef {
     private ActorSystem system;
@@ -27,10 +27,6 @@ public class ActorRef {
 
     public ActorSystem system() {
         return system;
-    }
-
-    public ActorEndpoint getEndpoint() {
-        return endpoint;
     }
 
     /**

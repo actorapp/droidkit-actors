@@ -8,7 +8,7 @@ import com.droidkit.actors.mailbox.MailboxesQueue;
  * thus freely shareable recipe for creating an actor including associated dispatcher information.</p>
  * For more information you may read about <a href="http://doc.akka.io/docs/akka/2.3.5/java/untyped-actors.html">Akka Props</a>.
  *
- * @author Stepan Ex3NDR Korshakov (me@ex3ndr.com)
+ * @author Steve Ex3NDR Korshakov (steve@actor.im)
  */
 public final class Props<T extends Actor> {
     private static final int TYPE_DEFAULT = 1;
@@ -67,7 +67,7 @@ public final class Props<T extends Actor> {
     /**
      * Getting dispatcher id if available
      *
-     * @return
+     * @return the dispatcher
      */
     public String getDispatcher() {
         return dispatcher;

@@ -13,6 +13,8 @@ import java.util.UUID;
 
 /**
  * Abstract Actor Dispatcher, used for dispatching messages for actors
+ *
+ * @author Stepan Ex3NDR Korshakov (steve@actor.im)
  */
 public abstract class AbsActorDispatcher {
 
@@ -29,6 +31,11 @@ public abstract class AbsActorDispatcher {
         this.actorSystem = actorSystem;
     }
 
+    /**
+     * Must be called in super constructor
+     *
+     * @param dispatcher thread dispatcher
+     */
     protected void initDispatcher(AbstractDispatcher<Envelope, MailboxesQueue> dispatcher) {
         if (this.dispatcher != null) {
             throw new RuntimeException("Double dispatcher init");
@@ -112,7 +119,10 @@ public abstract class AbsActorDispatcher {
      * @param envelope envelope
      */
     protected void processEnvelope(Envelope envelope) {
+
         ActorScope scope = envelope.getScope();
+
+        // Log.d("ACTOR_TRACE", "processEnvelope: " + envelope.getMessage() + " -> " + scope.getPath());
 
         if (actorSystem.getTraceInterface() != null) {
             actorSystem.getTraceInterface().onEnvelopeDelivered(envelope);

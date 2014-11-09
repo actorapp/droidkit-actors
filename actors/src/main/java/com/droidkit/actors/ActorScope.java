@@ -8,9 +8,9 @@ import java.util.UUID;
 
 /**
  * <p>INTERNAL API</p>
- * Actor Scope contains states of actor, UUID, Path, Props and Actor (if created).
+ * Actor Scope contains UUID, Path, Props and Actor (if created).
  *
- * @author Stepan Ex3NDR Korshakov (me@ex3ndr.com)
+ * @author Steve Ex3NDR Korshakov (steve@actor.im)
  */
 public class ActorScope {
 

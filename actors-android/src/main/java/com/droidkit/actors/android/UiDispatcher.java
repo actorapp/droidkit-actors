@@ -3,10 +3,12 @@ package com.droidkit.actors.android;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+
 import com.droidkit.actors.ActorTime;
 import com.droidkit.actors.dispatch.AbstractDispatchQueue;
 import com.droidkit.actors.dispatch.AbstractDispatcher;
 import com.droidkit.actors.dispatch.Dispatch;
+import com.droidkit.actors.dispatch.DispatchResult;
 
 /**
  * Thread Dispatcher that dispatches messages on UI Thread
@@ -43,12 +45,11 @@ public class UiDispatcher<T, Q extends AbstractDispatchQueue<T>> extends Abstrac
 
     protected void doIteration() {
         long time = ActorTime.currentTime();
-        T action = getQueue().dispatch(time);
-        if (action == null) {
-            long delay = getQueue().waitDelay(time);
-            invalidateDelay(delay);
+        DispatchResult action = getQueue().dispatch(time);
+        if (action.isResult()) {
+            dispatchMessage((T) action.getRes());
         } else {
-            dispatchMessage(action);
+            invalidateDelay(action.getDelay());
         }
     }
 }

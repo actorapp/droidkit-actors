@@ -3,7 +3,7 @@ package com.droidkit.actors;
 /**
  * Time used by actor system, uses System.nanoTime() inside
  *
- * @author Stepan Ex3NDR Korshakov (me@ex3ndr.com)
+ * @author Steve Ex3NDR Korshakov (steve@actor.im)
  */
 public class ActorTime {
     /**

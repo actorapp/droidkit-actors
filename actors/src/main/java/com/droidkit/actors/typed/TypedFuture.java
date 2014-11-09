@@ -3,7 +3,9 @@ package com.droidkit.actors.typed;
 import com.droidkit.actors.concurrency.Future;
 
 /**
- * Created by ex3ndr on 14.09.14.
+ * Future for typed methods
+ *
+ * @author Steve Ex3NDR Korshakov (steve@actor.im)
  */
 public class TypedFuture<T> extends Future<T> {
     public void doComplete(T res) {

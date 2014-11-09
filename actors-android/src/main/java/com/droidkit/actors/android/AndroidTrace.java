@@ -1,6 +1,7 @@
 package com.droidkit.actors.android;
 
 import android.util.Log;
+
 import com.droidkit.actors.Actor;
 import com.droidkit.actors.ActorRef;
 import com.droidkit.actors.ActorSystem;
@@ -20,18 +21,37 @@ public class AndroidTrace implements TraceInterface {
         system.setTraceInterface(new AndroidTrace());
     }
 
+    public static void initTrace(ActorSystem system, Thread.UncaughtExceptionHandler handler) {
+        system.setTraceInterface(new AndroidTrace(handler));
+    }
+
     public static void initTrace(ActorSystem system, String tag) {
         system.setTraceInterface(new AndroidTrace(tag));
     }
 
+    public static void initTrace(ActorSystem system, String tag, Thread.UncaughtExceptionHandler handler) {
+        system.setTraceInterface(new AndroidTrace(tag, handler));
+    }
+
     private String tag;
 
-    public AndroidTrace(String tag) {
+    private Thread.UncaughtExceptionHandler handler;
+
+    public AndroidTrace(String tag, Thread.UncaughtExceptionHandler handler) {
         this.tag = tag;
+        this.handler = handler;
+    }
+
+    public AndroidTrace(Thread.UncaughtExceptionHandler handler) {
+        this(DEFAULT_TAG, handler);
     }
 
     public AndroidTrace() {
-        this(DEFAULT_TAG);
+        this(DEFAULT_TAG, null);
+    }
+
+    public AndroidTrace(String tag) {
+        this(tag, null);
     }
 
     @Override
@@ -45,16 +65,16 @@ public class AndroidTrace implements TraceInterface {
             return;
         }
 
-        String name = envelope.getMessage().getClass().getSimpleName();
-        if (envelope.getMessage() instanceof TypedRequest) {
-            name = ((TypedRequest) envelope.getMessage()).getMethod().getName();
-        }
-
-        String dispatcher = envelope.getScope().getDispatcher().getName();
-
-        String actor = envelope.getScope().getActor().getClass().getSimpleName();
-
         if (duration > ENVELOPE_WARRING) {
+            String name = envelope.getMessage().getClass().getSimpleName();
+            if (envelope.getMessage() instanceof TypedRequest) {
+                name = ((TypedRequest) envelope.getMessage()).getMethod().getName();
+            }
+
+            String dispatcher = envelope.getScope().getDispatcher().getName();
+
+            String actor = envelope.getScope().getActor().getClass().getSimpleName();
+
             Log.w(tag, "Too long dispatch: " + dispatcher + "|" + actor + "~~" + name + " in " + duration + " ms");
         }
     }
@@ -73,6 +93,9 @@ public class AndroidTrace implements TraceInterface {
 
     @Override
     public void onActorDie(ActorRef ref, Exception e) {
+        if (handler != null) {
+            handler.uncaughtException(Thread.currentThread(), e);
+        }
         e.printStackTrace();
         Log.w(tag, "Actor die " + ref.getPath() + ", ex: " + e.getClass().getSimpleName() + ":" + e.getMessage());
     }

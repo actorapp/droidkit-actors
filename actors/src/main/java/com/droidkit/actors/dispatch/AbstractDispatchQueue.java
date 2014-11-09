@@ -4,55 +4,28 @@ package com.droidkit.actors.dispatch;
  * Queue for dispatching messages for {@link com.droidkit.actors.dispatch.ThreadPoolDispatcher}.
  * Implementation MUST BE thread-safe.
  *
- * @author Stepan Ex3NDR Korshakov (me@ex3ndr.com)
+ * @author Steve Ex3NDR Korshakov (steve@actor.im)
  */
 public abstract class AbstractDispatchQueue<T> {
 
     /**
      * Value used for result of waitDelay when dispatcher need to wait forever
      */
-    protected static final long FOREVER = Long.MAX_VALUE;
+    protected static final long FOREVER = 5 * 60 * 1000L;
 
     private QueueListener listener;
 
     /**
-     * Fetch message for dispatching and removing it from dispatch queue
-     *
-     * @param time current time from ActorTime
-     * @return message or null if there is no message for processing
-     */
-    public abstract T dispatch(long time);
-
-    /**
-     * Expected delay for nearest message.
-     * You might provide most accurate value as you can,
+     * <p>Fetch message for dispatching and removing it from dispatch queue</p>
+     * You might provide most accurate delay as you can,
      * this will minimize unnecessary thread work.
      * For example, if you will return zero here then thread will
      * loop continuously and consume processor time.
      *
      * @param time current time from ActorTime
-     * @return delay in ms
+     * @return message or delay information
      */
-    public abstract long waitDelay(long time);
-
-    /**
-     * Implementation of adding message to queue
-     *
-     * @param message
-     * @param atTime
-     */
-    protected abstract void putToQueueImpl(T message, long atTime);
-
-    /**
-     * Adding message to queue
-     *
-     * @param message message
-     * @param atTime  time (use {@link com.droidkit.actors.ActorTime#currentTime()} for currentTime)
-     */
-    public final void putToQueue(T message, long atTime) {
-        putToQueueImpl(message, atTime);
-        notifyQueueChanged();
-    }
+    public abstract DispatchResult dispatch(long time);
 
     /**
      * Notification about queue change.
@@ -62,6 +35,14 @@ public abstract class AbstractDispatchQueue<T> {
         if (lListener != null) {
             lListener.onQueueChanged();
         }
+    }
+
+    protected DispatchResult result(T obj) {
+        return DispatchResult.result(obj);
+    }
+
+    protected DispatchResult delay(long delay) {
+        return DispatchResult.delay(delay);
     }
 
     /**
@@ -81,4 +62,6 @@ public abstract class AbstractDispatchQueue<T> {
     public void setListener(QueueListener listener) {
         this.listener = listener;
     }
+
+
 }

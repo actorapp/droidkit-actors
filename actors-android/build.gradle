@@ -3,10 +3,10 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:0.9.+'
+        classpath 'com.android.tools.build:gradle:0.12.2'
     }
 }
-apply plugin: 'android-library'
+apply plugin: 'com.android.library'
 apply plugin: 'maven'
 apply plugin: 'signing'
 
@@ -16,15 +16,15 @@ repositories {
 }
 
 group = 'com.droidkit'
-version = '0.5.1'
+version = '0.6.0'
 
 android {
-    compileSdkVersion 19
+    compileSdkVersion 20
     buildToolsVersion "20.0.0"
 
     defaultConfig {
         minSdkVersion 9
-        targetSdkVersion 19
+        targetSdkVersion 20
     }
 
     buildTypes {
@@ -48,7 +48,13 @@ android.libraryVariants.all { variant ->
         exclude '**/BuildConfig.java'
         exclude '**/R.java'
 
-        ext.androidJar = "${android.plugin.sdkDirectory}/platforms/${android.compileSdkVersion}/android.jar"
+        if (android.plugin.hasProperty("sdkHandler")) {
+            androidPath = "${android.plugin.sdkHandler.sdkFolder}"
+        } else {
+            androidPath = "${android.plugin.sdkDirectory}"
+        }
+
+        ext.androidJar = "${androidPath}/platforms/${android.compileSdkVersion}/android.jar"
         classpath = files(variant.javaCompile.classpath.files) + files(ext.androidJar)
     }
 
@@ -93,13 +99,13 @@ project.afterEvaluate {
                     pom.project {
                         name 'DroidKit Actors: Android'
                         packaging 'aar'
-                        description 'DroidKit Actors: Android is extension for DroidKit Actors for creating UIActors'
-                        url 'https://github.com/secretapphd/droidkit-actors'
+                        description 'DroidKit Actors: Android is extension for DroidKit Actors'
+                        url 'https://github.com/actorapp/droidkit-actors'
 
                         scm {
-                            url 'scm:git@github.com:secretapphd/droidkit-actors.git'
-                            connection 'scm:git@github.com:secretapphd/droidkit-actors.git'
-                            developerConnection 'scm:git@github.com:secretapphd/droidkit-actors.git'
+                            url 'scm:git@github.com:actorapp/droidkit-actors.git'
+                            connection 'scm:git@github.com:actorapp/droidkit-actors.git'
+                            developerConnection 'scm:git@github.com:actorapp/droidkit-actors.git'
                         }
 
                         licenses {
@@ -124,5 +130,5 @@ project.afterEvaluate {
 }
 
 dependencies {
-    compile 'com.droidkit:actors:0.5.1'
+    compile 'com.droidkit:actors:0.6.0'
 }

@@ -12,8 +12,8 @@ public class RunnableDispatcher extends ThreadPoolDispatcher<Runnable, SimpleDis
     /**
      * Creating of dispatcher with one thread
      */
-    public RunnableDispatcher() {
-        this(1);
+    public RunnableDispatcher(String name) {
+        this(name,1);
     }
 
     /**
@@ -21,8 +21,8 @@ public class RunnableDispatcher extends ThreadPoolDispatcher<Runnable, SimpleDis
      *
      * @param threadsCount number of threads
      */
-    public RunnableDispatcher(int threadsCount) {
-        super(threadsCount, new SimpleDispatchQueue<Runnable>());
+    public RunnableDispatcher(String name, int threadsCount) {
+        super(name, threadsCount, new SimpleDispatchQueue<Runnable>());
     }
 
     /**
@@ -31,8 +31,8 @@ public class RunnableDispatcher extends ThreadPoolDispatcher<Runnable, SimpleDis
      * @param threadsCount number of threads
      * @param priority     priority of threads
      */
-    public RunnableDispatcher(int threadsCount, int priority) {
-        super(threadsCount, priority, new SimpleDispatchQueue<Runnable>());
+    public RunnableDispatcher(String name, int threadsCount, int priority) {
+        super(name, threadsCount, priority, new SimpleDispatchQueue<Runnable>());
     }
 
     @Override

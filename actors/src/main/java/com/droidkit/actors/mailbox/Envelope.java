@@ -7,7 +7,7 @@ import com.droidkit.actors.ActorTime;
 /**
  * Actor system envelope
  *
- * @author Stepan Ex3NDR Korshakov (me@ex3ndr.com)
+ * @author Steve Ex3NDR Korshakov (steve@actor.im)
  */
 public class Envelope {
     private final Object message;

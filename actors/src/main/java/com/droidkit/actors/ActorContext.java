@@ -1,9 +1,10 @@
 package com.droidkit.actors;
 
 /**
+ * <p>INTERNAL API</p>
  * Context of actor
  *
- * @author Stepan Ex3NDR Korshakov (me@ex3ndr.com)
+ * @author Steve Ex3NDR Korshakov (steve@actor.im)
  */
 public class ActorContext {
     private final ActorScope actorScope;

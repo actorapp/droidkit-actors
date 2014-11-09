@@ -9,7 +9,9 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 
 /**
- * Created by ex3ndr on 06.09.14.
+ * Factory of typed actors proxies
+ *
+ * @author Steve Ex3NDR Korshakov (steve@actor.im)
  */
 public class TypedCreator {
     public static <T> T typed(final ActorRef ref, Class<T> tClass) {
