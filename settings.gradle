@@ -1,1 +1,1 @@
-include ':actors', ':actors-android', 'actors-sample'
+include ':actors', ':actors-android'

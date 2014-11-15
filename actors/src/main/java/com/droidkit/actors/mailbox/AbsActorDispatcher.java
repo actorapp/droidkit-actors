@@ -80,6 +80,11 @@ public abstract class AbsActorDispatcher {
             }
         }
         scope.getMailbox().clear();
+        synchronized (LOCK) {
+            scopes.remove(scope.getPath());
+            endpoints.remove(scope.getPath());
+            dispatcher.getQueue().disconnectMailbox(scope.getMailbox());
+        }
     }
 
     public final void sendMessage(ActorEndpoint endpoint, Object message, long time, ActorRef sender) {
@@ -108,6 +113,12 @@ public abstract class AbsActorDispatcher {
         }
     }
 
+    public final void cancelSend(ActorEndpoint endpoint, Object message, ActorRef sender) {
+        if (!endpoint.isDisconnected()) {
+            endpoint.getMailbox().unschedule(new Envelope(message, endpoint.getScope(), endpoint.getMailbox(), sender));
+        }
+    }
+
 
     public String getName() {
         return name;
@@ -129,6 +140,7 @@ public abstract class AbsActorDispatcher {
         }
 
         long start = ActorTime.currentTime();
+        boolean isDisconnected = false;
 
         if (scope.getActor() == null) {
             if (envelope.getMessage() == PoisonPill.INSTANCE) {
@@ -161,6 +173,7 @@ public abstract class AbsActorDispatcher {
                 // No op
                 return;
             } else if (envelope.getMessage() == PoisonPill.INSTANCE) {
+                isDisconnected = true;
                 for (ActorExtension e : scope.getActor().getExtensions()) {
                     e.postStop();
                 }
@@ -172,6 +185,11 @@ public abstract class AbsActorDispatcher {
                     }
                 }
                 scope.getMailbox().clear();
+                synchronized (LOCK) {
+                    scopes.remove(scope.getPath());
+                    endpoints.remove(scope.getPath());
+                    dispatcher.getQueue().disconnectMailbox(scope.getMailbox());
+                }
             } else {
                 CurrentActor.setCurrentActor(scope.getActor());
                 scope.setSender(envelope.getSender());
@@ -187,12 +205,20 @@ public abstract class AbsActorDispatcher {
                 actorSystem.getTraceInterface().onActorDie(scope.getActorRef(), e);
             }
             scope.onActorDie();
+            isDisconnected = true;
+            synchronized (LOCK) {
+                scopes.remove(scope.getPath());
+                endpoints.remove(scope.getPath());
+                dispatcher.getQueue().disconnectMailbox(scope.getMailbox());
+            }
         } finally {
             if (actorSystem.getTraceInterface() != null) {
                 actorSystem.getTraceInterface().onEnvelopeProcessed(envelope, ActorTime.currentTime() - start);
             }
             CurrentActor.setCurrentActor(null);
-            dispatcher.getQueue().unlockMailbox(envelope.getMailbox());
+            if (!isDisconnected) {
+                dispatcher.getQueue().unlockMailbox(envelope.getMailbox());
+            }
         }
     }
 }

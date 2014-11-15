@@ -3,7 +3,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:0.12.2'
+        classpath 'com.android.tools.build:gradle:0.13.0'
     }
 }
 apply plugin: 'com.android.library'
@@ -16,7 +16,7 @@ repositories {
 }
 
 group = 'com.droidkit'
-version = '0.6.0'
+version = '0.6.1'
 
 android {
     compileSdkVersion 20
@@ -47,7 +47,7 @@ android.libraryVariants.all { variant ->
         source = variant.javaCompile.source
         exclude '**/BuildConfig.java'
         exclude '**/R.java'
-
+        def androidPath;
         if (android.plugin.hasProperty("sdkHandler")) {
             androidPath = "${android.plugin.sdkHandler.sdkFolder}"
         } else {
@@ -130,5 +130,5 @@ project.afterEvaluate {
 }
 
 dependencies {
-    compile 'com.droidkit:actors:0.6.0'
+    compile 'com.droidkit:actors:0.6.1'
 }

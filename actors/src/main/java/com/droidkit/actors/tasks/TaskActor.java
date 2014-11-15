@@ -60,7 +60,7 @@ public abstract class TaskActor<T> extends Actor {
             } else {
                 TaskListener listener = new TaskListener(request.getRequestId(), sender());
                 requests.add(listener);
-                self().sendOnce(new Obsolete(), 24 * 60 * 60 * 1000L);
+                // self().sendOnce(new Obsolete(), 24 * 60 * 60 * 1000L);
             }
         } else if (message instanceof TaskCancel) {
             TaskCancel cancel = (TaskCancel) message;

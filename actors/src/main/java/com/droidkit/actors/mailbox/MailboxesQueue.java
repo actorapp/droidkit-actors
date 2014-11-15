@@ -25,6 +25,10 @@ public class MailboxesQueue extends AbstractDispatchQueue<Envelope> {
         envelopeRoot.attachCollection(mailbox.getEnvelopes());
     }
 
+    public void disconnectMailbox(Mailbox mailbox) {
+        envelopeRoot.detachCollection(mailbox.getEnvelopes());
+    }
+
     public void notifyQueueChanged() {
         super.notifyQueueChanged();
     }

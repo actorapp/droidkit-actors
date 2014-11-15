@@ -1,12 +1,11 @@
 package com.droidkit.actors.mailbox.collections;
 
+import com.droidkit.actors.ActorTime;
 import com.droidkit.actors.mailbox.Envelope;
 import com.droidkit.actors.mailbox.MailboxesQueue;
+import com.droidkit.actors.mailbox.collections.sparse.SparseArray;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
 /**
  * Created by ex3ndr on 28.10.14.
@@ -48,7 +47,9 @@ public class EnvelopeRoot {
         }
 
         collections.remove(collection.getId());
-        Long prevKey = lastTopKey.remove(collection.getId());
+
+        Long prevKey = lastTopKey.get(collection.getId());
+        lastTopKey.remove(collection.getId());
         if (prevKey > 0) {
             sortedCollection.remove(prevKey);
         }
@@ -85,7 +86,8 @@ public class EnvelopeRoot {
 
         long key = collection.getTopKey();
 
-        Long prevKey = lastTopKey.remove(collection.getId());
+        Long prevKey = lastTopKey.get(collection.getId());
+        lastTopKey.remove(collection.getId());
         if (prevKey > 0) {
             sortedCollection.remove(prevKey);
         }
@@ -99,6 +101,20 @@ public class EnvelopeRoot {
     }
 
     synchronized long buildKey(long time) {
+        long currentTime = ActorTime.currentTime();
+        if (time < currentTime) {
+            time = currentTime;
+        }
+
+        // Clean Up old slots
+        Iterator<Long> iterator = usedSlot.iterator();
+        while (iterator.hasNext()) {
+            long t = iterator.next();
+            if (t < currentTime * MULTIPLE) {
+                iterator.remove();
+            }
+        }
+
         long shift = 0;
         while (usedSlot.contains(time * MULTIPLE + shift)) {
             shift++;
