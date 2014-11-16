@@ -2,9 +2,9 @@ package com.droidkit.actors.mailbox.collections;
 
 import com.droidkit.actors.mailbox.Envelope;
 
+import java.util.Comparator;
 import java.util.Iterator;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.PriorityQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -14,18 +14,15 @@ public class EnvelopeCollection {
 
     private static final AtomicInteger NEXT_ID = new AtomicInteger(1);
 
-    private TreeMap<Long, ScheduledEnvelope> envelopes = new TreeMap<Long, ScheduledEnvelope>();
+    private final PriorityQueue<ScheduledEnvelope> envelopes = new PriorityQueue<ScheduledEnvelope>(new ScheduledEnvelopesComparator());
 
     private EnvelopeRoot root;
 
     private int id;
 
-    private long topKey;
-
     public EnvelopeCollection(EnvelopeRoot root) {
         this.id = NEXT_ID.getAndIncrement();
         this.root = root;
-        this.topKey = 0L;
         this.root.attachCollection(this);
     }
 
@@ -34,7 +31,7 @@ public class EnvelopeCollection {
     }
 
     public long getTopKey() {
-        return topKey;
+        return envelopes.size() > 0 ? envelopes.peek().getKey() : 0;
     }
 
     public long putEnvelope(Envelope envelope, long time) {
@@ -43,15 +40,11 @@ public class EnvelopeCollection {
 
         long oldKey;
         synchronized (envelopes) {
-            oldKey = topKey;
-            envelopes.put(key, new ScheduledEnvelope(key, time, envelope));
-
-            if (key < topKey || topKey == 0) {
-                topKey = key;
-            }
+            oldKey = envelopes.peek().getKey();
+            envelopes.offer(new ScheduledEnvelope(key, time, envelope));
         }
 
-        if (oldKey != topKey) {
+        if (oldKey != envelopes.peek().getKey()) {
             root.changedTopKey(this);
         }
 
@@ -63,22 +56,16 @@ public class EnvelopeCollection {
         long oldKey;
 
         synchronized (envelopes) {
-            oldKey = topKey;
-            Iterator<Map.Entry<Long, ScheduledEnvelope>> iterator = envelopes.entrySet().iterator();
+            oldKey = envelopes.peek().getKey();
+            Iterator<ScheduledEnvelope> iterator = envelopes.iterator();
             while (iterator.hasNext()) {
-                if (comparator.equals(iterator.next().getValue().getEnvelope(), envelope)) {
+                if (comparator.equals(iterator.next().getEnvelope(), envelope)) {
                     iterator.remove();
                 }
             }
-
-            if (envelopes.isEmpty()) {
-                topKey = 0;
-            } else {
-                topKey = envelopes.firstKey();
-            }
         }
 
-        if (oldKey != topKey) {
+        if (oldKey != envelopes.peek().getKey()) {
             root.changedTopKey(this);
         }
     }
@@ -89,19 +76,18 @@ public class EnvelopeCollection {
 
         long oldKey;
         synchronized (envelopes) {
-            oldKey = topKey;
-            Iterator<Map.Entry<Long, ScheduledEnvelope>> iterator = envelopes.entrySet().iterator();
+            oldKey = envelopes.peek().getKey();
+            Iterator<ScheduledEnvelope> iterator = envelopes.iterator();
             while (iterator.hasNext()) {
-                if (comparator.equals(iterator.next().getValue().getEnvelope(), envelope)) {
+                if (comparator.equals(iterator.next().getEnvelope(), envelope)) {
                     iterator.remove();
                 }
             }
 
-            envelopes.put(key, new ScheduledEnvelope(key, time, envelope));
-            topKey = envelopes.firstKey();
+            envelopes.offer(new ScheduledEnvelope(key, time, envelope));
         }
 
-        if (oldKey != topKey) {
+        if (oldKey != envelopes.peek().getKey()) {
             root.changedTopKey(this);
         }
 
@@ -114,29 +100,21 @@ public class EnvelopeCollection {
 
         long oldKey;
         synchronized (envelopes) {
-            oldKey = topKey;
+            oldKey = envelopes.peek().getKey();
             if (envelopes.isEmpty()) {
                 return null;
             }
 
-
-            ScheduledEnvelope envelope = envelopes.firstEntry().getValue();
+            ScheduledEnvelope envelope = envelopes.peek();
             if (envelope.getTime() <= time) {
-                envelopes.remove(envelope.getKey());
-
-                if (envelopes.isEmpty()) {
-                    topKey = 0;
-                } else {
-                    topKey = envelopes.firstKey();
-                }
-
+                envelopes.poll();
                 result = FetchResult.envelope(envelope);
             } else {
                 result = FetchResult.delay(envelope.getTime() - time);
             }
         }
 
-        if (oldKey != topKey) {
+        if (oldKey != envelopes.peek().getKey()) {
             root.changedTopKey(this);
         }
 
@@ -146,7 +124,6 @@ public class EnvelopeCollection {
     public void clear() {
         synchronized (envelopes) {
             envelopes.clear();
-            topKey = 0;
         }
         root.changedTopKey(this);
     }
@@ -159,7 +136,7 @@ public class EnvelopeCollection {
 
     public Envelope[] allEnvelopes() {
         synchronized (envelopes) {
-            ScheduledEnvelope[] scheduledEnvelopes = envelopes.values().toArray(new ScheduledEnvelope[0]);
+            ScheduledEnvelope[] scheduledEnvelopes = envelopes.toArray(new ScheduledEnvelope[envelopes.size()]);
             Envelope[] res = new Envelope[scheduledEnvelopes.length];
             for (int i = 0; i < res.length; i++) {
                 res[i] = scheduledEnvelopes[i].getEnvelope();
@@ -226,6 +203,13 @@ public class EnvelopeCollection {
 
         public void recycle() {
             RESULT_CACHE.set(this);
+        }
+    }
+
+    /* package */ class ScheduledEnvelopesComparator implements Comparator<ScheduledEnvelope> {
+        @Override
+        public int compare(ScheduledEnvelope lop, ScheduledEnvelope rop) {
+            return (int) (lop.getKey() - rop.getKey());
         }
     }
 }
